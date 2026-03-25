@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>Plugins</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background: #f7f7f7; }
+    button { margin-right: 6px; }
+  </style>
+</head>
+<body>
+  <h1>Plugins</h1>
+  <p>
+    <a href="/ui">Dashboard</a>
+    <a href="/ui/notes">Notes</a>
+    <a href="/ui/reminders">Reminders</a>
+    <a href="/ui/plugins">Plugins</a>
+  </p>
+  <button onclick="reloadAll()">重载全部插件</button>
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Status</th><th>Version</th><th>Error</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      {% for p in plugins %}
+      <tr>
+        <td>{{ p.name }}</td>
+        <td>{{ p.status }}</td>
+        <td>{{ p.version }}</td>
+        <td>{{ p.error }}</td>
+        <td>
+          <button onclick="reloadOne('{{ p.name }}')">重载</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <pre id="result"></pre>
+  <script>
+    async function reloadAll() {
+      const res = await fetch('/admin/reload_plugins', { method: 'POST' });
+      const data = await res.json();
+      document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+    }
+    async function reloadOne(name) {
+      const res = await fetch(`/admin/reload_plugin/${name}`, { method: 'POST' });
+      const data = await res.json();
+      document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>Notes</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background: #f7f7f7; }
+  </style>
+</head>
+<body>
+  <h1>最近 Notes（最多100条）</h1>
+  <p>
+    <a href="/ui">Dashboard</a>
+    <a href="/ui/notes">Notes</a>
+    <a href="/ui/reminders">Reminders</a>
+    <a href="/ui/plugins">Plugins</a>
+  </p>
+  <table>
+    <thead>
+      <tr><th>ID</th><th>User</th><th>Content</th><th>Created At</th></tr>
+    </thead>
+    <tbody>
+      {% for n in notes %}
+      <tr>
+        <td>{{ n.id }}</td>
+        <td>{{ n.user_id }}</td>
+        <td>{{ n.content }}</td>
+        <td>{{ n.created_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

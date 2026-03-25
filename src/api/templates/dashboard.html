@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>weijian Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+    button { margin-right: 8px; }
+    a { margin-right: 8px; }
+  </style>
+</head>
+<body>
+  <h1>weijian-core Dashboard</h1>
+  <p>
+    <a href="/ui">Dashboard</a>
+    <a href="/ui/notes">Notes</a>
+    <a href="/ui/reminders">Reminders</a>
+    <a href="/ui/plugins">Plugins</a>
+  </p>
+
+  <div class="card">
+    <h3>服务状态</h3>
+    <div>service: {{ service_status }}</div>
+    <div>napcat ws: {{ ws_host }}:{{ ws_port }}</div>
+    <div>scheduler running: {{ scheduler_running }}</div>
+    <div>scheduler last_error: {{ scheduler_error }}</div>
+    <div>plugins: {{ plugin_count }}</div>
+    <div>plugin rules: {{ plugin_rule_count }}</div>
+  </div>
+
+  <div class="card">
+    <h3>管理操作</h3>
+    <button onclick="post('/admin/reload_plugins')">重载全部插件</button>
+    <button onclick="post('/admin/reminders/cleanup_done')">清理已完成提醒</button>
+    <pre id="result"></pre>
+  </div>
+
+  <script>
+    async function post(url) {
+      const res = await fetch(url, { method: 'POST' });
+      const data = await res.json();
+      document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>

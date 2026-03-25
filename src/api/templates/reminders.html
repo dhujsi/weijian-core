@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>Reminders</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background: #f7f7f7; }
+    button { margin-right: 6px; }
+  </style>
+</head>
+<body>
+  <h1>Reminders（最多100条）</h1>
+  <p>
+    <a href="/ui">Dashboard</a>
+    <a href="/ui/notes">Notes</a>
+    <a href="/ui/reminders?status=all">All</a>
+    <a href="/ui/reminders?status=pending">Pending</a>
+    <a href="/ui/reminders?status=done">Done</a>
+    <a href="/ui/reminders?status=cancelled">Cancelled</a>
+    <a href="/ui/plugins">Plugins</a>
+  </p>
+  <div>current status filter: {{ status }}</div>
+  <table>
+    <thead>
+      <tr><th>ID</th><th>User</th><th>Content</th><th>Status</th><th>Remind At</th><th>Created At</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      {% for r in reminders %}
+      <tr>
+        <td>{{ r.id }}</td>
+        <td>{{ r.user_id }}</td>
+        <td>{{ r.content }}</td>
+        <td>{{ r.status }}</td>
+        <td>{{ r.remind_at }}</td>
+        <td>{{ r.created_at }}</td>
+        <td>
+          <button class="cancel-btn" data-reminder-id="{{ r.id }}">取消</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <pre id="result"></pre>
+  <script>
+    async function cancelReminder(id) {
+      const res = await fetch(`/admin/reminders/${id}/cancel`, { method: 'POST' });
+      const data = await res.json();
+      document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+    }
+
+    for (const btn of document.querySelectorAll('.cancel-btn')) {
+      btn.addEventListener('click', () => {
+        const id = Number(btn.dataset.reminderId);
+        cancelReminder(id);
+      });
+    }
+  </script>
+</body>
+</html>
