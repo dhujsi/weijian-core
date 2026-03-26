@@ -101,8 +101,12 @@
 1. 确认 `.env` 中以下配置：
 	- `PUID` / `PGID`
 	- `NAPCAT_HTTP_TOKEN`（与 NapCat 一致）
-2. 首次构建并启动：`docker compose up -d --build`
-3. 检查状态：`docker compose ps`
+	- `BOT_QQ`（用于生成 NapCat onebot 配置文件名）
+2. （推荐）先自动生成 NapCat 配置：
+	- `python tools/gen_napcat_config.py`
+	- 如需覆盖：`python tools/gen_napcat_config.py --force`
+3. 首次构建并启动：`docker compose up -d --build`
+4. 检查状态：`docker compose ps`
 
 说明：
 
@@ -110,6 +114,13 @@
 - weijian WebUI 对外映射为 `8018:8018`
 - weijian WS 对外映射为 `8095:8095`
 - `docker compose config` 已可通过，当前 compose 配置可用。
+
+自动配置脚本默认会写入：
+
+- `napcat_data/config/onebot11_<BOT_QQ>.json`
+- HTTP Server：`0.0.0.0:3000`
+- WebSocket Client：`ws://weijian-core:8095/`
+- token：取 `.env` 的 `NAPCAT_HTTP_TOKEN`
 
 服务间通信在 compose 内部网络进行：
 

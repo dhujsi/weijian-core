@@ -38,7 +38,9 @@ services:
     volumes:
       - ./plugins:/app/plugins
       - ./data:/app/data
+      - ./napcat_data/config:/app/napcat_data/config
       - ./.env:/app/.env
+    command: ["sh", "-c", "python /app/tools/gen_napcat_config.py --env-file /app/.env --out-dir /app/napcat_data/config ; python src/main.py"]
     labels:
       watchcow.enable: "true"
       watchcow.display_name: "未笺"
