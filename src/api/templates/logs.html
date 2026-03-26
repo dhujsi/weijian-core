@@ -4,88 +4,86 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>运行日志 - 微笺控制台</title>
-  <style>
-    :root {
-      --bg: #f5f7fb;
-      --card: #fff;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --line: #e5e7eb;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif; }
-    .container { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
-    h1 { margin: 0; font-size: 24px; }
-    .sub { margin: 6px 0 14px; color: var(--muted); font-size: 13px; }
-    .nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-    .nav a {
-      text-decoration: none;
-      color: #0f172a;
-      border: 1px solid var(--line);
-      background: #fff;
-      border-radius: 10px;
-      padding: 8px 12px;
-      font-size: 13px;
-    }
-    .nav a.active { border-color: var(--primary); color: var(--primary); background: #eff6ff; }
-    .toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-    input { width: 100px; border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
-    button {
-      border: 0;
-      border-radius: 9px;
-      padding: 8px 12px;
-      font-size: 12px;
-      color: #fff;
-      background: var(--primary);
-      cursor: pointer;
-    }
-    button:hover { background: var(--primary-hover); }
-    pre {
-      margin: 0;
-      padding: 12px;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: #0b1020;
-      color: #d1d5db;
-      min-height: 68vh;
-      white-space: pre-wrap;
-      word-break: break-word;
-      font-size: 12px;
-      overflow: auto;
-    }
-  </style>
+  <link rel="stylesheet" href="/ui/static/admin.css" />
+  <script defer src="/ui/static/admin.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>运行日志</h1>
-    <div class="sub">展示 `data/runtime.log` 最近日志</div>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-badge">微笺</span><span>weijian-core</span></div>
+      <div class="nav-title">系统页面</div>
+      <div class="nav-list">
+        <a class="nav-link {% if active_nav == '/ui' %}active{% endif %}" href="/ui">总览</a>
+        <a class="nav-link {% if active_nav == '/ui/notes' %}active{% endif %}" href="/ui/notes">笔记</a>
+        <a class="nav-link {% if active_nav == '/ui/reminders' %}active{% endif %}" href="/ui/reminders">提醒</a>
+        <a class="nav-link {% if active_nav == '/ui/plugins' %}active{% endif %}" href="/ui/plugins">插件</a>
+        <a class="nav-link {% if active_nav == '/ui/settings' %}active{% endif %}" href="/ui/settings">配置</a>
+        <a class="nav-link {% if active_nav == '/ui/logs' %}active{% endif %}" href="/ui/logs">日志</a>
+      </div>
+      <div class="nav-title">插件菜单</div>
+      <div class="nav-list">
+        {% for m in plugin_menus %}
+        <a class="nav-link {% if active_nav == m.route %}active{% endif %}" href="{{ m.route }}">{{ m.title }}</a>
+        {% endfor %}
+      </div>
+    </aside>
 
-    <div class="nav">
-      <a class="{% if active_nav == '/ui' %}active{% endif %}" href="/ui">总览</a>
-      <a class="{% if active_nav == '/ui/notes' %}active{% endif %}" href="/ui/notes">笔记</a>
-      <a class="{% if active_nav == '/ui/reminders' %}active{% endif %}" href="/ui/reminders">提醒</a>
-      <a class="{% if active_nav == '/ui/plugins' %}active{% endif %}" href="/ui/plugins">插件</a>
-      <a class="{% if active_nav == '/ui/settings' %}active{% endif %}" href="/ui/settings">配置</a>
-      <a class="{% if active_nav == '/ui/logs' %}active{% endif %}" href="/ui/logs">日志</a>
-      {% for m in plugin_menus %}
-      <a class="{% if active_nav == m.route %}active{% endif %}" href="{{ m.route }}">{{ m.title }}</a>
-      {% endfor %}
-    </div>
+    <main class="main">
+      <div class="topbar">
+        <div class="top-title">
+          <h1>运行日志</h1>
+          <p>查看 `data/runtime.log` 并支持筛选、清空</p>
+        </div>
+        <div class="token-box">
+          <input id="adminTokenInput" type="password" placeholder="管理员令牌" />
+          <button id="saveAdminTokenBtn" class="ghost">保存令牌</button>
+          <span id="adminTokenStatus" class="muted"></span>
+        </div>
+      </div>
 
-    <div class="toolbar">
-      <input id="lines" type="number" min="50" max="2000" value="{{ lines }}" />
-      <button onclick="refreshLogs()">刷新</button>
-    </div>
-
-    <pre>{{ log_text if log_text else '暂无日志（请先触发一次消息或刷新后再看）' }}</pre>
+      <div class="container">
+        <div class="card">
+          <div class="card-body">
+            <div class="toolbar">
+              <input id="lines" type="number" min="50" max="2000" value="{{ lines }}" />
+              <input id="kw" type="text" placeholder="关键词筛选（可选）" value="{{ kw if kw else '' }}" />
+              <button onclick="refreshLogs()">刷新</button>
+              <button class="ghost" onclick="clearFilter()">清空筛选</button>
+              <button class="danger" onclick="clearLogs()">清空日志</button>
+            </div>
+            <pre id="logBox" class="log-box">{{ log_text if log_text else '暂无日志（请先触发一次消息或刷新后再看）' }}</pre>
+          </div>
+        </div>
+      </div>
+    </main>
   </div>
 
   <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      window.WJAdmin && window.WJAdmin.bindTokenInput();
+    });
+
     function refreshLogs() {
       const n = Number(document.getElementById('lines').value || 300);
-      location.href = `/ui/logs?lines=${n}`;
+      const kw = (document.getElementById('kw').value || '').trim();
+      const query = new URLSearchParams({ lines: String(n) });
+      if (kw) query.set('kw', kw);
+      location.href = `/ui/logs?${query.toString()}`;
+    }
+
+    function clearFilter() {
+      document.getElementById('kw').value = '';
+      refreshLogs();
+    }
+
+    async function clearLogs() {
+      if (!confirm('确认清空 data/runtime.log 吗？该操作不可恢复。')) return;
+      const { res, data } = await window.WJAdmin.adminPost('/admin/logs/clear');
+      if (!res.ok || !data.ok) {
+        alert(`清空失败：${data.message || res.status}`);
+        return;
+      }
+      document.getElementById('logBox').innerText = '日志已清空';
     }
   </script>
 </body>

@@ -38,12 +38,25 @@
 	- `GET /ui/plugins`
 	- `GET /ui/settings`（系统配置）
 	- `GET /ui/logs`（运行日志）
+
+WebUI 已统一为后台化布局（侧栏 + 顶栏 + 卡片风格），并统一使用：
+
+- 公共样式：`src/api/static/admin.css`
+- 公共交互：`src/api/static/admin.js`（管理员令牌本地保存、鉴权请求封装）
 - 管理接口（需 `X-Admin-Token`）：
 	- `POST /admin/reload_plugins`
 	- `POST /admin/reload_plugin/{name}`
 	- `POST /admin/reminders/{reminder_id}/cancel`
 	- `POST /admin/reminders/cleanup_done`
 	- `POST /admin/settings/env`
+	- `POST /admin/logs/clear`
+
+日志页（`/ui/logs`）当前支持：
+
+- 行数范围查看（50~2000）
+- 关键词筛选（页面内输入关键字）
+- 清空筛选
+- 清空 `data/runtime.log`
 
 ### 1.3 插件能力（后端 + 前端）
 

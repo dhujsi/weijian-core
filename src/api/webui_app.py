@@ -5,6 +5,7 @@ from typing import Any
 
 from fastapi import FastAPI, Header, Request
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
@@ -93,6 +94,14 @@ def _tail_lines(file_path: Path, limit: int) -> str:
     return "\n".join(lines[-limit:])
 
 
+def _clear_file(file_path: Path) -> int:
+    if not file_path.exists() or not file_path.is_file():
+        return 0
+    size = file_path.stat().st_size
+    file_path.write_text("", encoding="utf-8")
+    return size
+
+
 def create_web_app(
     settings: Settings,
     store: SQLiteStore,
@@ -100,14 +109,19 @@ def create_web_app(
     plugin_manager: PluginManager,
 ) -> FastAPI:
     app = FastAPI(title="weijian-core webui")
-    templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+    api_dir = Path(__file__).parent
+    templates = Jinja2Templates(directory=str(api_dir / "templates"))
+    app.mount("/ui/static", StaticFiles(directory=str(api_dir / "static")), name="ui-static")
     env_path = Path(".env")
 
     def _plugin_menus() -> list[dict[str, str]]:
         return plugin_manager.list_frontend_menu_items()
 
     def _check_admin_token(x_admin_token: str | None) -> JSONResponse | None:
-        if x_admin_token != settings.admin_token:
+        expected = (settings.admin_token or "").strip()
+        if not expected:
+            return None
+        if x_admin_token != expected:
             print("[admin] unauthorized request")
             return JSONResponse(status_code=401, content={"ok": False, "message": "unauthorized"})
         return None
@@ -224,9 +238,13 @@ def create_web_app(
         )
 
     @app.get("/ui/logs", response_class=HTMLResponse)
-    async def ui_logs(request: Request, lines: int = 300) -> Any:
+    async def ui_logs(request: Request, lines: int = 300, kw: str = "") -> Any:
         normalized_lines = max(50, min(lines, 2000))
         log_text = _tail_lines(Path("data/runtime.log"), normalized_lines)
+        keyword = kw.strip()
+        if keyword:
+            filtered = [line for line in log_text.splitlines() if keyword.lower() in line.lower()]
+            log_text = "\n".join(filtered)
         return templates.TemplateResponse(
             request=request,
             name="logs.html",
@@ -235,6 +253,7 @@ def create_web_app(
                 "active_nav": "/ui/logs",
                 "plugin_menus": _plugin_menus(),
                 "lines": normalized_lines,
+                "kw": keyword,
                 "log_text": log_text,
             },
         )
@@ -357,6 +376,22 @@ def create_web_app(
                 "ok": True,
                 "message": "配置已写入 .env（重启容器后生效）",
                 "updated_keys": sorted(list(updates.keys())),
+            }
+        )
+
+    @app.post("/admin/logs/clear")
+    async def admin_clear_logs(x_admin_token: str | None = Header(default=None)) -> JSONResponse:
+        unauthorized = _check_admin_token(x_admin_token)
+        if unauthorized:
+            return unauthorized
+
+        cleared_bytes = _clear_file(Path("data/runtime.log"))
+        print(f"[admin] POST /admin/logs/clear => cleared_bytes={cleared_bytes}")
+        return JSONResponse(
+            content={
+                "ok": True,
+                "message": "日志已清空",
+                "cleared_bytes": cleared_bytes,
             }
         )
 

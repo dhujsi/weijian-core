@@ -4,150 +4,97 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>系统配置 - 微笺控制台</title>
-  <style>
-    :root {
-      --bg: #f5f7fb;
-      --card: #fff;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --line: #e5e7eb;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
-    }
-    .container { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
-    h1 { margin: 0; font-size: 24px; }
-    .sub { margin: 6px 0 14px; color: var(--muted); font-size: 13px; }
-    .nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-    .nav a {
-      text-decoration: none;
-      color: #0f172a;
-      border: 1px solid var(--line);
-      background: #fff;
-      border-radius: 10px;
-      padding: 8px 12px;
-      font-size: 13px;
-    }
-    .nav a.active { border-color: var(--primary); color: var(--primary); background: #eff6ff; }
-    .tip {
-      margin-bottom: 12px;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid #fde68a;
-      background: #fffbeb;
-      color: #92400e;
-      font-size: 13px;
-    }
-    .card {
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: var(--card);
-      overflow: hidden;
-      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
-    }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border-bottom: 1px solid var(--line); padding: 10px; text-align: left; font-size: 13px; }
-    th { background: #f8fafc; color: #374151; }
-    input {
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 13px;
-      outline: none;
-    }
-    input:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(147, 197, 253, .3); }
-    .footer { margin-top: 12px; display: flex; gap: 8px; align-items: center; }
-    button {
-      border: 0;
-      border-radius: 9px;
-      padding: 8px 12px;
-      font-size: 12px;
-      color: #fff;
-      background: var(--primary);
-      cursor: pointer;
-    }
-    button:hover { background: var(--primary-hover); }
-    pre {
-      margin: 0;
-      padding: 10px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      background: #0b1020;
-      color: #d1d5db;
-      min-height: 76px;
-      white-space: pre-wrap;
-      word-break: break-all;
-      font-size: 12px;
-      flex: 1;
-    }
-  </style>
+  <link rel="stylesheet" href="/ui/static/admin.css" />
+  <script defer src="/ui/static/admin.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>系统配置</h1>
-    <div class="sub">可在线编辑 `.env` 常用配置项</div>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-badge">微笺</span><span>weijian-core</span></div>
+      <div class="nav-title">系统页面</div>
+      <div class="nav-list">
+        <a class="nav-link {% if active_nav == '/ui' %}active{% endif %}" href="/ui">总览</a>
+        <a class="nav-link {% if active_nav == '/ui/notes' %}active{% endif %}" href="/ui/notes">笔记</a>
+        <a class="nav-link {% if active_nav == '/ui/reminders' %}active{% endif %}" href="/ui/reminders">提醒</a>
+        <a class="nav-link {% if active_nav == '/ui/plugins' %}active{% endif %}" href="/ui/plugins">插件</a>
+        <a class="nav-link {% if active_nav == '/ui/settings' %}active{% endif %}" href="/ui/settings">配置</a>
+        <a class="nav-link {% if active_nav == '/ui/logs' %}active{% endif %}" href="/ui/logs">日志</a>
+      </div>
+      <div class="nav-title">插件菜单</div>
+      <div class="nav-list">
+        {% for m in plugin_menus %}
+        <a class="nav-link {% if active_nav == m.route %}active{% endif %}" href="{{ m.route }}">{{ m.title }}</a>
+        {% endfor %}
+      </div>
+    </aside>
 
-    <div class="nav">
-      <a class="{% if active_nav == '/ui' %}active{% endif %}" href="/ui">总览</a>
-      <a class="{% if active_nav == '/ui/notes' %}active{% endif %}" href="/ui/notes">笔记</a>
-      <a class="{% if active_nav == '/ui/reminders' %}active{% endif %}" href="/ui/reminders">提醒</a>
-      <a class="{% if active_nav == '/ui/plugins' %}active{% endif %}" href="/ui/plugins">插件</a>
-      <a class="{% if active_nav == '/ui/settings' %}active{% endif %}" href="/ui/settings">配置</a>
-      <a class="{% if active_nav == '/ui/logs' %}active{% endif %}" href="/ui/logs">日志</a>
-      {% for m in plugin_menus %}
-      <a class="{% if active_nav == m.route %}active{% endif %}" href="{{ m.route }}">{{ m.title }}</a>
-      {% endfor %}
-    </div>
+    <main class="main">
+      <div class="topbar">
+        <div class="top-title">
+          <h1>系统配置</h1>
+          <p>在线编辑 `.env` 常用配置项</p>
+        </div>
+        <div class="token-box">
+          <input id="adminTokenInput" type="password" placeholder="管理员令牌" />
+          <button id="saveAdminTokenBtn" class="ghost">保存令牌</button>
+          <span id="adminTokenStatus" class="muted"></span>
+        </div>
+      </div>
 
-    <div class="tip">
-      {% if env_exists %}
-      配置保存后会写入 `.env` 文件，但运行中的容器不会自动热加载，需重启 `weijian-core` 才生效。
-      {% else %}
-      未检测到 `.env`，保存时将自动创建。
-      {% endif %}
-    </div>
+      <div class="container">
+        <div class="card">
+          <div class="card-body">
+            <div class="muted" style="margin-bottom:12px;">
+              {% if env_exists %}
+              配置保存后会写入 `.env` 文件，运行中的容器不会自动热加载，需重启 `weijian-core` 生效。
+              {% else %}
+              未检测到 `.env`，保存时将自动创建。
+              {% endif %}
+            </div>
 
-    <div class="card">
-      <table>
-        <thead>
-          <tr><th>键</th><th>值</th></tr>
-        </thead>
-        <tbody>
-          {% for r in rows %}
-          <tr>
-            <td><code>{{ r.key }}</code></td>
-            <td><input data-key="{{ r.key }}" value="{{ r.value }}" /></td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>键</th><th>值</th></tr>
+                </thead>
+                <tbody>
+                  {% for r in rows %}
+                  <tr>
+                    <td><code>{{ r.key }}</code></td>
+                    <td><input data-key="{{ r.key }}" value="{{ r.value }}" /></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
 
-    <div class="footer">
-      <button onclick="saveEnv()">保存 .env</button>
-      <pre id="result">等待保存...</pre>
-    </div>
+            <div class="toolbar" style="margin-top:12px; margin-bottom:0;">
+              <button onclick="saveEnv()">保存 .env</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">操作结果</div>
+          <div class="card-body">
+            <pre id="result" class="result-box">等待保存...</pre>
+          </div>
+        </div>
+      </div>
+    </main>
   </div>
 
   <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      window.WJAdmin && window.WJAdmin.bindTokenInput();
+    });
+
     async function saveEnv() {
       const values = {};
       for (const el of document.querySelectorAll('input[data-key]')) {
         values[el.dataset.key] = el.value;
       }
-      const res = await fetch('/admin/settings/env', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ values }),
-      });
-      const data = await res.json();
+      const { data } = await window.WJAdmin.adminPost('/admin/settings/env', { values });
       document.getElementById('result').innerText = JSON.stringify(data, null, 2);
     }
   </script>
