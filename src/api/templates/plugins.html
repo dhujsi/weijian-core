@@ -2,43 +2,122 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
-  <title>Plugins</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>插件管理 - 微笺控制台</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
+    :root {
+      --bg: #f5f7fb;
+      --card: #fff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+    }
+    .container { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+    h1 { margin: 0; font-size: 24px; }
+    .sub { margin: 6px 0 14px; color: var(--muted); font-size: 13px; }
+    .nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .nav a {
+      text-decoration: none;
+      color: #0f172a;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    .nav a.active { border-color: var(--primary); color: var(--primary); background: #eff6ff; }
+    .toolbar { margin-bottom: 12px; }
+    button {
+      border: 0;
+      border-radius: 9px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #fff;
+      background: var(--primary);
+      cursor: pointer;
+    }
+    button:hover { background: var(--primary-hover); }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--card);
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    }
     table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ddd; padding: 8px; }
-    th { background: #f7f7f7; }
-    button { margin-right: 6px; }
+    th, td { border-bottom: 1px solid var(--line); padding: 10px; text-align: left; font-size: 13px; }
+    th { background: #f8fafc; color: #374151; }
+    tr:hover td { background: #fafafa; }
+    pre {
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #0b1020;
+      color: #d1d5db;
+      min-height: 76px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      font-size: 12px;
+    }
+    .empty { padding: 18px; color: var(--muted); font-size: 13px; }
   </style>
 </head>
 <body>
-  <h1>Plugins</h1>
-  <p>
-    <a href="/ui">Dashboard</a>
-    <a href="/ui/notes">Notes</a>
-    <a href="/ui/reminders">Reminders</a>
-    <a href="/ui/plugins">Plugins</a>
-  </p>
-  <button onclick="reloadAll()">重载全部插件</button>
-  <table>
-    <thead>
-      <tr><th>Name</th><th>Status</th><th>Version</th><th>Error</th><th>Action</th></tr>
-    </thead>
-    <tbody>
-      {% for p in plugins %}
-      <tr>
-        <td>{{ p.name }}</td>
-        <td>{{ p.status }}</td>
-        <td>{{ p.version }}</td>
-        <td>{{ p.error }}</td>
-        <td>
-          <button onclick="reloadOne('{{ p.name }}')">重载</button>
-        </td>
-      </tr>
+  <div class="container">
+    <h1>插件管理</h1>
+    <div class="sub">查看插件状态并进行热重载</div>
+
+    <div class="nav">
+      <a class="{% if active_nav == '/ui' %}active{% endif %}" href="/ui">总览</a>
+      <a class="{% if active_nav == '/ui/notes' %}active{% endif %}" href="/ui/notes">笔记</a>
+      <a class="{% if active_nav == '/ui/reminders' %}active{% endif %}" href="/ui/reminders">提醒</a>
+      <a class="{% if active_nav == '/ui/plugins' %}active{% endif %}" href="/ui/plugins">插件</a>
+      {% for m in plugin_menus %}
+      <a class="{% if active_nav == m.route %}active{% endif %}" href="{{ m.route }}">{{ m.title }}</a>
       {% endfor %}
-    </tbody>
-  </table>
-  <pre id="result"></pre>
+    </div>
+
+    <div class="toolbar">
+      <button onclick="reloadAll()">重载全部插件</button>
+    </div>
+
+    <div class="card">
+      {% if plugins|length == 0 %}
+      <div class="empty">未发现插件，请检查 plugins 目录</div>
+      {% else %}
+      <table>
+        <thead>
+          <tr><th>名称</th><th>状态</th><th>版本</th><th>错误</th><th>操作</th></tr>
+        </thead>
+        <tbody>
+          {% for p in plugins %}
+          <tr>
+            <td>{{ p.name }}</td>
+            <td>{{ p.status }}</td>
+            <td>{{ p.version }}</td>
+            <td>{{ p.error }}</td>
+            <td>
+              <button onclick="reloadOne('{{ p.name }}')">重载</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+
+    <pre id="result">等待操作结果...</pre>
+  </div>
   <script>
     async function reloadAll() {
       const res = await fetch('/admin/reload_plugins', { method: 'POST' });

@@ -1,0 +1,12 @@
+services:
+    napcat:
+        environment:
+            - NAPCAT_UID=${PUID}
+            - NAPCAT_GID=${PGID}
+        ports:
+            - 13001:3000
+            - 6099:6099
+        container_name: napcat
+        network_mode: bridge
+        restart: always
+        image: mlikiowa/napcat-docker:latest

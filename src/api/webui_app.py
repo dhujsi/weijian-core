@@ -23,6 +23,9 @@ def create_web_app(
     app = FastAPI(title="weijian-core webui")
     templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
+    def _plugin_menus() -> list[dict[str, str]]:
+        return plugin_manager.list_frontend_menu_items()
+
     def _check_admin_token(x_admin_token: str | None) -> JSONResponse | None:
         if x_admin_token != settings.admin_token:
             print("[admin] unauthorized request")
@@ -34,6 +37,8 @@ def create_web_app(
         scheduler = message_service.scheduler_status()
         context = {
             "request": request,
+            "active_nav": "/ui",
+            "plugin_menus": _plugin_menus(),
             "service_status": "running",
             "ws_host": settings.napcat_ws_host,
             "ws_port": settings.napcat_ws_port,
@@ -67,6 +72,8 @@ def create_web_app(
             name="notes.html",
             context={
                 "request": request,
+                "active_nav": "/ui/notes",
+                "plugin_menus": _plugin_menus(),
                 "notes": note_items,
             },
         )
@@ -92,6 +99,8 @@ def create_web_app(
             name="reminders.html",
             context={
                 "request": request,
+                "active_nav": "/ui/reminders",
+                "plugin_menus": _plugin_menus(),
                 "status": normalized,
                 "reminders": reminder_items,
             },
@@ -106,9 +115,65 @@ def create_web_app(
             name="plugins.html",
             context={
                 "request": request,
+                "active_nav": "/ui/plugins",
+                "plugin_menus": _plugin_menus(),
                 "plugins": plugins,
             },
         )
+
+    @app.get("/ui/ext/{ext_path:path}", response_class=HTMLResponse)
+    async def ui_plugin_page(ext_path: str, request: Request) -> Any:
+        route = f"/ui/ext/{ext_path}".rstrip("/") or "/ui/ext"
+        page = plugin_manager.resolve_frontend_page(route)
+        if page is None:
+            return HTMLResponse(status_code=404, content=f"插件页面不存在: {route}")
+
+        view_type = str(page.get("view_type", "")).strip().lower()
+        source = str(page.get("source", "")).strip()
+        plugin_name = str(page.get("plugin", "")).strip()
+        title = str(page.get("title", "插件页面"))
+
+        print(f"[webui] GET {route} plugin={plugin_name}, view_type={view_type}, source={source}")
+
+        if view_type == "iframe":
+            return templates.TemplateResponse(
+                request=request,
+                name="plugin_iframe.html",
+                context={
+                    "request": request,
+                    "active_nav": route,
+                    "plugin_menus": _plugin_menus(),
+                    "title": title,
+                    "iframe_url": source,
+                },
+            )
+
+        if view_type == "template":
+            try:
+                file_path = plugin_manager.plugin_file_path(plugin_name, source)
+                if not file_path.exists() or not file_path.is_file():
+                    return HTMLResponse(
+                        status_code=404,
+                        content=f"插件模板不存在: {plugin_name}/{source}",
+                    )
+                html = file_path.read_text(encoding="utf-8")
+            except Exception as exc:
+                return HTMLResponse(status_code=500, content=f"插件页面加载失败: {exc}")
+
+            return templates.TemplateResponse(
+                request=request,
+                name="plugin_raw_page.html",
+                context={
+                    "request": request,
+                    "active_nav": route,
+                    "plugin_menus": _plugin_menus(),
+                    "title": title,
+                    "plugin": plugin_name,
+                    "html": html,
+                },
+            )
+
+        return HTMLResponse(status_code=400, content=f"不支持的view_type: {view_type}")
 
     @app.post("/admin/reload_plugins")
     async def admin_reload_plugins(x_admin_token: str | None = Header(default=None)) -> JSONResponse:

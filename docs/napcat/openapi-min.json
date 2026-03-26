@@ -1,0 +1,2509 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "NapCat OneBot 11 HTTP API",
+    "description": "NapCatOneBot11 HTTP POST 接口文档",
+    "version": "4.17.53"
+  },
+  "paths": {
+    "/get_login_info": {
+      "post": {
+        "summary": "获取登录号信息",
+        "deprecated": false,
+        "description": "获取当前登录帐号的信息",
+        "tags": [
+          "系统接口"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "description": "API 参数",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              },
+              "examples": {
+                "Default": {
+                  "summary": "默认请求示例",
+                  "value": {}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "业务响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/OB11User"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "Success": {
+                    "summary": "成功响应",
+                    "value": {
+                      "status": "ok",
+                      "retcode": 0,
+                      "data": {
+                        "user_id": 123456789,
+                        "nickname": "机器人"
+                      },
+                      "message": "",
+                      "wording": "",
+                      "stream": "normal-action"
+                    }
+                  },
+                  "Error_1400": {
+                    "$ref": "#/components/examples/Error_1400"
+                  },
+                  "Error_1401": {
+                    "$ref": "#/components/examples/Error_1401"
+                  },
+                  "Error_1404": {
+                    "$ref": "#/components/examples/Error_1404"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "operationId": "post-get_login_info"
+      }
+    },
+    "/send_group_msg": {
+      "post": {
+        "summary": "发送群消息",
+        "deprecated": false,
+        "description": "发送群消息",
+        "tags": [
+          "群组接口"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "description": "API 参数",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message_type": {
+                    "description": "消息类型 (private/group)",
+                    "enum": [
+                      "private",
+                      "group"
+                    ],
+                    "type": "string"
+                  },
+                  "user_id": {
+                    "description": "用户QQ",
+                    "type": "string"
+                  },
+                  "group_id": {
+                    "description": "群号",
+                    "type": "string"
+                  },
+                  "message": {
+                    "$ref": "#/components/schemas/OB11MessageMixType"
+                  },
+                  "auto_escape": {
+                    "description": "是否作为纯文本发送",
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "source": {
+                    "description": "合并转发来源",
+                    "type": "string"
+                  },
+                  "news": {
+                    "description": "合并转发新闻",
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "text"
+                      ]
+                    }
+                  },
+                  "summary": {
+                    "description": "合并转发摘要",
+                    "type": "string"
+                  },
+                  "prompt": {
+                    "description": "合并转发提示",
+                    "type": "string"
+                  },
+                  "timeout": {
+                    "description": "自定义发送超时(毫秒)，覆盖自动计算值",
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "message"
+                ]
+              },
+              "examples": {
+                "Default": {
+                  "summary": "默认请求示例",
+                  "value": {
+                    "group_id": "123456",
+                    "message": "hello"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "业务响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "message_id": {
+                              "description": "消息ID",
+                              "type": "number"
+                            },
+                            "res_id": {
+                              "description": "转发消息的 res_id",
+                              "type": "string"
+                            },
+                            "forward_id": {
+                              "description": "转发消息的 forward_id",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "message_id"
+                          ],
+                          "description": "业务数据"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "Success": {
+                    "summary": "成功响应",
+                    "value": {
+                      "status": "ok",
+                      "retcode": 0,
+                      "data": {
+                        "message_id": 123456
+                      },
+                      "message": "",
+                      "wording": "",
+                      "stream": "normal-action"
+                    }
+                  },
+                  "Error_1400": {
+                    "$ref": "#/components/examples/Error_1400"
+                  },
+                  "Error_1401": {
+                    "$ref": "#/components/examples/Error_1401"
+                  },
+                  "Error_1404": {
+                    "$ref": "#/components/examples/Error_1404"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "operationId": "post-send_group_msg"
+      }
+    },
+    "/send_private_msg": {
+      "post": {
+        "summary": "发送私聊消息",
+        "deprecated": false,
+        "description": "发送私聊消息",
+        "tags": [
+          "消息接口"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "description": "API 参数",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message_type": {
+                    "description": "消息类型 (private/group)",
+                    "enum": [
+                      "private",
+                      "group"
+                    ],
+                    "type": "string"
+                  },
+                  "user_id": {
+                    "description": "用户QQ",
+                    "type": "string"
+                  },
+                  "group_id": {
+                    "description": "群号",
+                    "type": "string"
+                  },
+                  "message": {
+                    "$ref": "#/components/schemas/OB11MessageMixType"
+                  },
+                  "auto_escape": {
+                    "description": "是否作为纯文本发送",
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "source": {
+                    "description": "合并转发来源",
+                    "type": "string"
+                  },
+                  "news": {
+                    "description": "合并转发新闻",
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "text"
+                      ]
+                    }
+                  },
+                  "summary": {
+                    "description": "合并转发摘要",
+                    "type": "string"
+                  },
+                  "prompt": {
+                    "description": "合并转发提示",
+                    "type": "string"
+                  },
+                  "timeout": {
+                    "description": "自定义发送超时(毫秒)，覆盖自动计算值",
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "message"
+                ]
+              },
+              "examples": {
+                "Default": {
+                  "summary": "默认请求示例",
+                  "value": {
+                    "user_id": "123456789",
+                    "message": "hello"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "业务响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "message_id": {
+                              "description": "消息ID",
+                              "type": "number"
+                            },
+                            "res_id": {
+                              "description": "转发消息的 res_id",
+                              "type": "string"
+                            },
+                            "forward_id": {
+                              "description": "转发消息的 forward_id",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "message_id"
+                          ],
+                          "description": "业务数据"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "Success": {
+                    "summary": "成功响应",
+                    "value": {
+                      "status": "ok",
+                      "retcode": 0,
+                      "data": {
+                        "message_id": 123456
+                      },
+                      "message": "",
+                      "wording": "",
+                      "stream": "normal-action"
+                    }
+                  },
+                  "Error_1400": {
+                    "$ref": "#/components/examples/Error_1400"
+                  },
+                  "Error_1401": {
+                    "$ref": "#/components/examples/Error_1401"
+                  },
+                  "Error_1404": {
+                    "$ref": "#/components/examples/Error_1404"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "operationId": "post-send_private_msg"
+      }
+    },
+    "/get_status": {
+      "post": {
+        "summary": "获取运行状态",
+        "deprecated": false,
+        "description": "获取运行状态",
+        "tags": [
+          "系统接口"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "description": "API 参数",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              },
+              "examples": {
+                "Default": {
+                  "summary": "默认请求示例",
+                  "value": {}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "业务响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "online": {
+                              "description": "是否在线",
+                              "type": "boolean"
+                            },
+                            "good": {
+                              "description": "状态是否良好",
+                              "type": "boolean"
+                            },
+                            "stat": {
+                              "description": "统计信息",
+                              "type": "object"
+                            }
+                          },
+                          "required": [
+                            "online",
+                            "good",
+                            "stat"
+                          ],
+                          "description": "业务数据"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "Success": {
+                    "summary": "成功响应",
+                    "value": {
+                      "status": "ok",
+                      "retcode": 0,
+                      "data": {
+                        "online": true,
+                        "good": true,
+                        "stat": {}
+                      },
+                      "message": "",
+                      "wording": "",
+                      "stream": "normal-action"
+                    }
+                  },
+                  "Error_1400": {
+                    "$ref": "#/components/examples/Error_1400"
+                  },
+                  "Error_1401": {
+                    "$ref": "#/components/examples/Error_1401"
+                  },
+                  "Error_1404": {
+                    "$ref": "#/components/examples/Error_1404"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "operationId": "post-get_status"
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BaseResponse": {
+        "type": "object",
+        "x-schema-id": "BaseResponse",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "状态 (ok/failed)"
+          },
+          "retcode": {
+            "type": "number",
+            "description": "返回码"
+          },
+          "data": {
+            "description": "业务数据（具体结构由各接口定义）"
+          },
+          "message": {
+            "type": "string",
+            "description": "消息"
+          },
+          "wording": {
+            "type": "string",
+            "description": "提示"
+          },
+          "stream": {
+            "type": "string",
+            "description": "流式响应",
+            "enum": [
+              "stream-action",
+              "normal-action"
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "retcode"
+        ]
+      },
+      "EmptyData": {
+        "description": "无数据",
+        "type": "null"
+      },
+      "FileBaseData": {
+        "x-schema-id": "FileBaseData",
+        "description": "文件消息段基础数据",
+        "type": "object",
+        "properties": {
+          "file": {
+            "description": "文件路径/URL/file:///",
+            "type": "string"
+          },
+          "path": {
+            "description": "文件路径",
+            "type": "string"
+          },
+          "url": {
+            "description": "文件URL",
+            "type": "string"
+          },
+          "name": {
+            "description": "文件名",
+            "type": "string"
+          },
+          "thumb": {
+            "description": "缩略图",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ]
+      },
+      "OB11MessageAt": {
+        "x-schema-id": "OB11MessageAt",
+        "description": "@消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "at"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "qq": {
+                "description": "QQ号或all",
+                "type": "string"
+              },
+              "name": {
+                "description": "显示名称",
+                "type": "string"
+              }
+            },
+            "required": [
+              "qq"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageContact": {
+        "x-schema-id": "OB11MessageContact",
+        "description": "联系人消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "contact"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "description": "联系人类型",
+                "enum": [
+                  "qq",
+                  "group"
+                ],
+                "type": "string"
+              },
+              "id": {
+                "description": "联系人ID",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageCustomMusic": {
+        "x-schema-id": "OB11MessageCustomMusic",
+        "description": "自定义音乐消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "music"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "description": "音乐平台类型",
+                "enum": [
+                  "qq",
+                  "163",
+                  "kugou",
+                  "migu",
+                  "kuwo",
+                  "custom"
+                ],
+                "type": "string"
+              },
+              "id": {
+                "type": "null"
+              },
+              "url": {
+                "description": "点击后跳转URL",
+                "type": "string"
+              },
+              "audio": {
+                "description": "音频URL",
+                "type": "string"
+              },
+              "title": {
+                "description": "音乐标题",
+                "type": "string"
+              },
+              "image": {
+                "description": "封面图片URL",
+                "type": "string"
+              },
+              "content": {
+                "description": "音乐简介",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id",
+              "url",
+              "image"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageData": {
+        "x-schema-id": "OB11MessageData",
+        "description": "OneBot 11 消息段",
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/OB11MessageText"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageFace"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageMFace"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageAt"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageReply"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageImage"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageRecord"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageVideo"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageFile"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageIdMusic"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageCustomMusic"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessagePoke"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageDice"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageRPS"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageContact"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageLocation"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageJson"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageXml"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageMarkdown"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageMiniApp"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageNode"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageForward"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageOnlineFile"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageFlashTransfer"
+          }
+        ]
+      },
+      "OB11MessageDice": {
+        "x-schema-id": "OB11MessageDice",
+        "description": "骰子消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "dice"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "result": {
+                "description": "骰子结果",
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "result"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageFace": {
+        "x-schema-id": "OB11MessageFace",
+        "description": "QQ表情消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "face"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "description": "表情ID",
+                "type": "string"
+              },
+              "resultId": {
+                "description": "结果ID",
+                "type": "string"
+              },
+              "chainCount": {
+                "description": "连击数",
+                "type": "number"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageFileBase": {
+        "x-schema-id": "OB11MessageFileBase",
+        "description": "文件消息基础接口",
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FileBaseData"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "OB11MessageFile": {
+        "x-schema-id": "OB11MessageFile",
+        "description": "文件消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "file"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/FileBaseData"
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageFlashTransfer": {
+        "x-schema-id": "OB11MessageFlashTransfer",
+        "description": "QQ闪传消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "flashtransfer"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "fileSetId": {
+                "description": "文件集ID",
+                "type": "string"
+              }
+            },
+            "required": [
+              "fileSetId"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageForward": {
+        "x-schema-id": "OB11MessageForward",
+        "description": "合并转发消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "forward"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "description": "合并转发ID",
+                "type": "string"
+              },
+              "content": {
+                "description": "消息内容 (OB11Message[])",
+                "type": "object"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageIdMusic": {
+        "x-schema-id": "OB11MessageIdMusic",
+        "description": "ID音乐消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "music"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "description": "音乐平台类型",
+                "enum": [
+                  "qq",
+                  "163",
+                  "kugou",
+                  "migu",
+                  "kuwo"
+                ],
+                "type": "string"
+              },
+              "id": {
+                "description": "音乐ID",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageImage": {
+        "x-schema-id": "OB11MessageImage",
+        "description": "图片消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "image"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "allOf": [
+              {
+                "description": "文件消息段基础数据",
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "description": "文件路径/URL/file:///",
+                    "type": "string"
+                  },
+                  "path": {
+                    "description": "文件路径",
+                    "type": "string"
+                  },
+                  "url": {
+                    "description": "文件URL",
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "文件名",
+                    "type": "string"
+                  },
+                  "thumb": {
+                    "description": "缩略图",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "summary": {
+                    "description": "图片摘要",
+                    "type": "string"
+                  },
+                  "sub_type": {
+                    "description": "图片子类型",
+                    "type": "number"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageJson": {
+        "x-schema-id": "OB11MessageJson",
+        "description": "JSON消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "json"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "data": {
+                "description": "JSON数据",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {}
+                  }
+                ]
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "description": "token",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "token"
+                ]
+              }
+            },
+            "required": [
+              "data"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageLocation": {
+        "x-schema-id": "OB11MessageLocation",
+        "description": "位置消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "location"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "lat": {
+                "description": "纬度",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "lon": {
+                "description": "经度",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "title": {
+                "description": "标题",
+                "type": "string"
+              },
+              "content": {
+                "description": "内容",
+                "type": "string"
+              }
+            },
+            "required": [
+              "lat",
+              "lon"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageMFace": {
+        "x-schema-id": "OB11MessageMFace",
+        "description": "商城表情消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "mface"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "emoji_package_id": {
+                "description": "表情包ID",
+                "type": "number"
+              },
+              "emoji_id": {
+                "description": "表情ID",
+                "type": "string"
+              },
+              "key": {
+                "description": "表情key",
+                "type": "string"
+              },
+              "summary": {
+                "description": "表情摘要",
+                "type": "string"
+              }
+            },
+            "required": [
+              "emoji_package_id",
+              "emoji_id",
+              "key",
+              "summary"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageMarkdown": {
+        "x-schema-id": "OB11MessageMarkdown",
+        "description": "Markdown消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "markdown"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "content": {
+                "description": "Markdown内容",
+                "type": "string"
+              }
+            },
+            "required": [
+              "content"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageMiniApp": {
+        "x-schema-id": "OB11MessageMiniApp",
+        "description": "小程序消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "miniapp"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "data": {
+                "description": "小程序数据",
+                "type": "string"
+              }
+            },
+            "required": [
+              "data"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageMixType": {
+        "x-schema-id": "OB11MessageMixType",
+        "description": "OneBot 11 消息混合类型",
+        "anyOf": [
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OB11MessageData"
+            }
+          },
+          {
+            "type": "string"
+          },
+          {
+            "$ref": "#/components/schemas/OB11MessageData"
+          }
+        ]
+      },
+      "OB11MessageNode": {
+        "x-schema-id": "OB11MessageNode",
+        "description": "合并转发消息节点",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "node"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "description": "转发消息ID",
+                "type": "string"
+              },
+              "user_id": {
+                "description": "发送者QQ号",
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              "uin": {
+                "description": "发送者QQ号(兼容go-cqhttp)",
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              "nickname": {
+                "description": "发送者昵称",
+                "type": "string"
+              },
+              "name": {
+                "description": "发送者昵称(兼容go-cqhttp)",
+                "type": "string"
+              },
+              "content": {
+                "description": "消息内容 (OB11MessageMixType)",
+                "type": "object"
+              },
+              "source": {
+                "description": "消息来源",
+                "type": "string"
+              },
+              "news": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "description": "新闻文本",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "text"
+                  ]
+                }
+              },
+              "summary": {
+                "description": "摘要",
+                "type": "string"
+              },
+              "prompt": {
+                "description": "提示",
+                "type": "string"
+              },
+              "time": {
+                "description": "时间",
+                "type": "string"
+              }
+            },
+            "required": [
+              "nickname",
+              "content"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageOnlineFile": {
+        "x-schema-id": "OB11MessageOnlineFile",
+        "description": "在线文件消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "onlinefile"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "msgId": {
+                "description": "消息ID",
+                "type": "string"
+              },
+              "elementId": {
+                "description": "元素ID",
+                "type": "string"
+              },
+              "fileName": {
+                "description": "文件名",
+                "type": "string"
+              },
+              "fileSize": {
+                "description": "文件大小",
+                "type": "string"
+              },
+              "isDir": {
+                "description": "是否为目录",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "msgId",
+              "elementId",
+              "fileName",
+              "fileSize",
+              "isDir"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessagePoke": {
+        "x-schema-id": "OB11MessagePoke",
+        "description": "戳一戳消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "poke"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "description": "戳一戳类型",
+                "type": "string"
+              },
+              "id": {
+                "description": "戳一戳ID",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageRPS": {
+        "x-schema-id": "OB11MessageRPS",
+        "description": "猜拳消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "rps"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "result": {
+                "description": "猜拳结果",
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "result"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageRecord": {
+        "x-schema-id": "OB11MessageRecord",
+        "description": "语音消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "record"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/FileBaseData"
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageReply": {
+        "x-schema-id": "OB11MessageReply",
+        "description": "回复消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "reply"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "description": "消息ID的短ID映射",
+                "type": "string"
+              },
+              "seq": {
+                "description": "消息序列号，优先使用",
+                "type": "number"
+              }
+            }
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11Message": {
+        "x-schema-id": "OB11Message",
+        "description": "OneBot 11 完整消息对象",
+        "type": "object",
+        "properties": {
+          "real_seq": {
+            "description": "真实序列号",
+            "type": "string"
+          },
+          "temp_source": {
+            "description": "临时会话来源",
+            "type": "number"
+          },
+          "message_sent_type": {
+            "description": "消息发送类型",
+            "type": "string"
+          },
+          "target_id": {
+            "description": "目标ID",
+            "type": "number"
+          },
+          "self_id": {
+            "description": "机器人QQ号",
+            "type": "number"
+          },
+          "time": {
+            "description": "消息时间戳",
+            "type": "number"
+          },
+          "message_id": {
+            "description": "消息ID",
+            "type": "number"
+          },
+          "message_seq": {
+            "description": "消息序列号",
+            "type": "number"
+          },
+          "real_id": {
+            "description": "真实ID",
+            "type": "number"
+          },
+          "user_id": {
+            "description": "发送者QQ号",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "group_id": {
+            "description": "群号",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "group_name": {
+            "description": "群名称",
+            "type": "string"
+          },
+          "message_type": {
+            "description": "消息类型",
+            "enum": [
+              "private",
+              "group"
+            ],
+            "type": "string"
+          },
+          "sub_type": {
+            "description": "消息子类型",
+            "enum": [
+              "friend",
+              "group",
+              "normal"
+            ],
+            "type": "string"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/OB11Sender"
+          },
+          "message": {
+            "description": "消息内容",
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OB11MessageData"
+                }
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "message_format": {
+            "description": "消息格式",
+            "enum": [
+              "array",
+              "string"
+            ],
+            "type": "string"
+          },
+          "raw_message": {
+            "description": "原始消息",
+            "type": "string"
+          },
+          "font": {
+            "description": "字体",
+            "type": "number"
+          },
+          "post_type": {
+            "description": "上报类型",
+            "type": "string"
+          },
+          "raw": {
+            "description": "原始消息对象",
+            "type": "object"
+          },
+          "emoji_likes_list": {
+            "description": "表情点赞列表",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "emoji_id": {
+                  "description": "表情ID",
+                  "type": "string"
+                },
+                "emoji_type": {
+                  "description": "表情类型",
+                  "type": "string"
+                },
+                "likes_cnt": {
+                  "description": "点赞数",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "emoji_id",
+                "emoji_type",
+                "likes_cnt"
+              ]
+            }
+          }
+        },
+        "required": [
+          "time",
+          "message_id",
+          "message_seq",
+          "real_id",
+          "user_id",
+          "message_type",
+          "sender",
+          "message",
+          "message_format",
+          "raw_message",
+          "font"
+        ]
+      },
+      "OB11MessageText": {
+        "x-schema-id": "OB11MessageText",
+        "description": "纯文本消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "text"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "description": "纯文本内容",
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageVideo": {
+        "x-schema-id": "OB11MessageVideo",
+        "description": "视频消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "video"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/FileBaseData"
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11MessageXml": {
+        "x-schema-id": "OB11MessageXml",
+        "description": "XML消息段",
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "xml"
+            ],
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "data": {
+                "description": "XML数据",
+                "type": "string"
+              }
+            },
+            "required": [
+              "data"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "OB11PostSendMsg": {
+        "x-schema-id": "OB11PostSendMsg",
+        "description": "OneBot 11 发送消息请求",
+        "type": "object",
+        "properties": {
+          "message_type": {
+            "description": "消息类型",
+            "enum": [
+              "private",
+              "group"
+            ],
+            "type": "string"
+          },
+          "user_id": {
+            "description": "用户QQ号",
+            "type": "string"
+          },
+          "group_id": {
+            "description": "群号",
+            "type": "string"
+          },
+          "message": {
+            "$ref": "#/components/schemas/OB11MessageMixType"
+          },
+          "messages": {
+            "$ref": "#/components/schemas/OB11MessageMixType"
+          },
+          "auto_escape": {
+            "description": "是否作为纯文本发送",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "source": {
+            "description": "消息来源",
+            "type": "string"
+          },
+          "news": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "description": "文本",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          },
+          "summary": {
+            "description": "摘要",
+            "type": "string"
+          },
+          "prompt": {
+            "description": "提示",
+            "type": "string"
+          },
+          "time": {
+            "description": "时间",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "OB11Sender": {
+        "x-schema-id": "OB11Sender",
+        "description": "OneBot 11 发送者信息",
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "description": "发送者QQ号",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "nickname": {
+            "description": "发送者昵称",
+            "type": "string"
+          },
+          "card": {
+            "description": "群名片",
+            "type": "string"
+          },
+          "role": {
+            "description": "角色",
+            "type": "string"
+          },
+          "sex": {
+            "description": "性别",
+            "type": "string"
+          },
+          "age": {
+            "description": "年龄",
+            "type": "number"
+          },
+          "area": {
+            "description": "地区",
+            "type": "string"
+          },
+          "level": {
+            "description": "等级",
+            "type": "string"
+          },
+          "title": {
+            "description": "头衔",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "nickname"
+        ]
+      },
+      "OB11GroupMember": {
+        "x-schema-id": "OB11GroupMember",
+        "description": "OneBot 11 群成员信息",
+        "type": "object",
+        "properties": {
+          "group_id": {
+            "description": "群号",
+            "type": "number"
+          },
+          "user_id": {
+            "description": "QQ号",
+            "type": "number"
+          },
+          "nickname": {
+            "description": "昵称",
+            "type": "string"
+          },
+          "card": {
+            "description": "名片",
+            "type": "string"
+          },
+          "sex": {
+            "description": "性别",
+            "type": "string"
+          },
+          "age": {
+            "description": "年龄",
+            "type": "number"
+          },
+          "join_time": {
+            "description": "入群时间戳",
+            "type": "number"
+          },
+          "last_sent_time": {
+            "description": "最后发言时间戳",
+            "type": "number"
+          },
+          "level": {
+            "description": "等级",
+            "type": "string"
+          },
+          "qq_level": {
+            "description": "QQ等级",
+            "type": "number"
+          },
+          "role": {
+            "description": "角色 (owner/admin/member)",
+            "type": "string"
+          },
+          "title": {
+            "description": "头衔",
+            "type": "string"
+          },
+          "area": {
+            "description": "地区",
+            "type": "string"
+          },
+          "unfriendly": {
+            "description": "是否不良记录",
+            "type": "boolean"
+          },
+          "title_expire_time": {
+            "description": "头衔过期时间",
+            "type": "number"
+          },
+          "card_changeable": {
+            "description": "是否允许修改名片",
+            "type": "boolean"
+          },
+          "shut_up_timestamp": {
+            "description": "禁言截止时间戳",
+            "type": "number"
+          },
+          "is_robot": {
+            "description": "是否为机器人",
+            "type": "boolean"
+          },
+          "qage": {
+            "description": "Q龄",
+            "type": "number"
+          }
+        },
+        "required": [
+          "group_id",
+          "user_id",
+          "nickname"
+        ]
+      },
+      "OB11Group": {
+        "x-schema-id": "OB11Group",
+        "description": "OneBot 11 群信息",
+        "type": "object",
+        "properties": {
+          "group_all_shut": {
+            "description": "是否全员禁言",
+            "type": "number"
+          },
+          "group_remark": {
+            "description": "群备注",
+            "type": "string"
+          },
+          "group_id": {
+            "description": "群号",
+            "type": "number"
+          },
+          "group_name": {
+            "description": "群名称",
+            "type": "string"
+          },
+          "member_count": {
+            "description": "成员人数",
+            "type": "number"
+          },
+          "max_member_count": {
+            "description": "最大成员人数",
+            "type": "number"
+          }
+        },
+        "required": [
+          "group_all_shut",
+          "group_remark",
+          "group_id",
+          "group_name"
+        ]
+      },
+      "OB11ActionMessage": {
+        "x-schema-id": "OB11ActionMessage",
+        "description": "OneBot 11 消息信息",
+        "type": "object",
+        "allOf": [
+          {
+            "description": "最后一条消息",
+            "type": "object",
+            "properties": {
+              "self_id": {
+                "description": "发送者QQ号",
+                "type": "number"
+              },
+              "user_id": {
+                "description": "接收者QQ号",
+                "type": "number"
+              },
+              "time": {
+                "description": "时间戳",
+                "type": "number"
+              },
+              "real_seq": {
+                "description": "消息序号",
+                "type": "string"
+              },
+              "message_type": {
+                "description": "消息类型",
+                "type": "string"
+              },
+              "sender": {
+                "type": "object",
+                "properties": {
+                  "user_id": {
+                    "description": "用户QQ号",
+                    "type": "number"
+                  },
+                  "nickname": {
+                    "description": "用户昵称",
+                    "type": "string"
+                  },
+                  "card": {
+                    "description": "用户名片",
+                    "type": "string"
+                  },
+                  "role": {
+                    "description": "用户角色",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "user_id",
+                  "nickname"
+                ]
+              },
+              "raw_message": {
+                "description": "原始消息",
+                "type": "string"
+              },
+              "font": {
+                "description": "字体大小",
+                "type": "number"
+              },
+              "sub_type": {
+                "description": "子类型",
+                "type": "string"
+              },
+              "message": {
+                "description": "消息内容",
+                "type": "object"
+              },
+              "message_format": {
+                "description": "消息格式",
+                "type": "string"
+              },
+              "post_type": {
+                "description": "发布类型",
+                "type": "string"
+              },
+              "group_id": {
+                "description": "群号",
+                "type": "number"
+              },
+              "group_name": {
+                "description": "群名称",
+                "type": "string"
+              }
+            },
+            "required": [
+              "self_id",
+              "user_id",
+              "time",
+              "real_seq",
+              "message_type",
+              "sender",
+              "raw_message",
+              "font",
+              "sub_type",
+              "message",
+              "message_format",
+              "post_type",
+              "group_id",
+              "group_name"
+            ]
+          },
+          {
+            "description": "OneBot 11 消息信息",
+            "type": "object",
+            "properties": {
+              "message_id": {
+                "description": "消息ID",
+                "type": "number"
+              },
+              "message_seq": {
+                "description": "消息序列号",
+                "type": "number"
+              },
+              "emoji_likes_list": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "emoji_id": {
+                      "description": "表情符号ID",
+                      "type": "string"
+                    },
+                    "emoji_type": {
+                      "description": "表情符号类型",
+                      "type": "string"
+                    },
+                    "likes_cnt": {
+                      "description": "点赞数",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "emoji_id",
+                    "emoji_type",
+                    "likes_cnt"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "message_id",
+              "message_seq",
+              "emoji_likes_list"
+            ]
+          }
+        ]
+      },
+      "OB11Notify": {
+        "x-schema-id": "OB11Notify",
+        "description": "OneBot 11 通知信息",
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "description": "请求ID",
+            "type": "number"
+          },
+          "invitor_uin": {
+            "description": "邀请者QQ",
+            "type": "number"
+          },
+          "invitor_nick": {
+            "description": "邀请者昵称",
+            "type": "string"
+          },
+          "group_id": {
+            "description": "群号",
+            "type": "number"
+          },
+          "group_name": {
+            "description": "群名称",
+            "type": "string"
+          },
+          "message": {
+            "description": "附言",
+            "type": "string"
+          },
+          "checked": {
+            "description": "是否已处理",
+            "type": "boolean"
+          },
+          "actor": {
+            "description": "操作者QQ",
+            "type": "number"
+          },
+          "requester_nick": {
+            "description": "申请者昵称",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "invitor_uin",
+          "invitor_nick",
+          "group_id",
+          "group_name",
+          "message",
+          "checked",
+          "actor",
+          "requester_nick"
+        ]
+      },
+      "OB11User": {
+        "x-schema-id": "OB11User",
+        "description": "OneBot 11 用户信息",
+        "type": "object",
+        "properties": {
+          "birthday_year": {
+            "description": "出生年份",
+            "type": "number"
+          },
+          "birthday_month": {
+            "description": "出生月份",
+            "type": "number"
+          },
+          "birthday_day": {
+            "description": "出生日期",
+            "type": "number"
+          },
+          "phone_num": {
+            "description": "手机号",
+            "type": "string"
+          },
+          "email": {
+            "description": "邮箱",
+            "type": "string"
+          },
+          "category_id": {
+            "description": "分组ID",
+            "type": "number"
+          },
+          "user_id": {
+            "description": "QQ号",
+            "type": "number"
+          },
+          "nickname": {
+            "description": "昵称",
+            "type": "string"
+          },
+          "remark": {
+            "description": "备注",
+            "type": "string"
+          },
+          "sex": {
+            "description": "性别",
+            "type": "string"
+          },
+          "level": {
+            "description": "等级",
+            "type": "number"
+          },
+          "age": {
+            "description": "年龄",
+            "type": "number"
+          },
+          "qid": {
+            "description": "QID",
+            "type": "string"
+          },
+          "login_days": {
+            "description": "登录天数",
+            "type": "number"
+          },
+          "categoryName": {
+            "description": "分组名称",
+            "type": "string"
+          },
+          "categoryId": {
+            "description": "分组ID",
+            "type": "number"
+          }
+        },
+        "required": [
+          "user_id",
+          "nickname"
+        ]
+      },
+      "OB11LatestMessage": {
+        "x-schema-id": "OB11LatestMessage",
+        "description": "最后一条消息",
+        "type": "object",
+        "properties": {
+          "self_id": {
+            "description": "发送者QQ号",
+            "type": "number"
+          },
+          "user_id": {
+            "description": "接收者QQ号",
+            "type": "number"
+          },
+          "time": {
+            "description": "时间戳",
+            "type": "number"
+          },
+          "real_seq": {
+            "description": "消息序号",
+            "type": "string"
+          },
+          "message_type": {
+            "description": "消息类型",
+            "type": "string"
+          },
+          "sender": {
+            "type": "object",
+            "properties": {
+              "user_id": {
+                "description": "用户QQ号",
+                "type": "number"
+              },
+              "nickname": {
+                "description": "用户昵称",
+                "type": "string"
+              },
+              "card": {
+                "description": "用户名片",
+                "type": "string"
+              },
+              "role": {
+                "description": "用户角色",
+                "type": "string"
+              }
+            },
+            "required": [
+              "user_id",
+              "nickname"
+            ]
+          },
+          "raw_message": {
+            "description": "原始消息",
+            "type": "string"
+          },
+          "font": {
+            "description": "字体大小",
+            "type": "number"
+          },
+          "sub_type": {
+            "description": "子类型",
+            "type": "string"
+          },
+          "message": {
+            "description": "消息内容",
+            "type": "object"
+          },
+          "message_format": {
+            "description": "消息格式",
+            "type": "string"
+          },
+          "post_type": {
+            "description": "发布类型",
+            "type": "string"
+          },
+          "group_id": {
+            "description": "群号",
+            "type": "number"
+          },
+          "group_name": {
+            "description": "群名称",
+            "type": "string"
+          }
+        },
+        "required": [
+          "self_id",
+          "user_id",
+          "time",
+          "real_seq",
+          "message_type",
+          "sender",
+          "raw_message",
+          "font",
+          "sub_type",
+          "message",
+          "message_format",
+          "post_type",
+          "group_id",
+          "group_name"
+        ]
+      }
+    },
+    "examples": {
+      "Success_Default": {
+        "summary": "成功响应",
+        "value": {
+          "status": "ok",
+          "retcode": 0,
+          "data": {},
+          "message": "",
+          "wording": "",
+          "stream": "normal-action"
+        }
+      },
+      "Error_1400": {
+        "summary": "请求参数错误或业务逻辑执行失败",
+        "value": {
+          "status": "failed",
+          "retcode": 1400,
+          "data": null,
+          "message": "请求参数错误或业务逻辑执行失败",
+          "wording": "请求参数错误或业务逻辑执行失败",
+          "stream": "normal-action"
+        }
+      },
+      "Error_1401": {
+        "summary": "权限不足",
+        "value": {
+          "status": "failed",
+          "retcode": 1401,
+          "data": null,
+          "message": "权限不足",
+          "wording": "权限不足",
+          "stream": "normal-action"
+        }
+      },
+      "Error_1404": {
+        "summary": "资源不存在",
+        "value": {
+          "status": "failed",
+          "retcode": 1404,
+          "data": null,
+          "message": "资源不存在",
+          "wording": "资源不存在",
+          "stream": "normal-action"
+        }
+      }
+    },
+    "responses": {},
+    "securitySchemes": {}
+  }
+}

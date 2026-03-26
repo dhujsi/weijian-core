@@ -24,6 +24,7 @@ class PluginRegistry:
     def __init__(self, plugin_name: str, message_service: MessageService) -> None:
         self._plugin_name = plugin_name
         self._message_service = message_service
+        self._frontend_pages: list[dict[str, str | int]] = []
 
     def register_rule(self, rule_name: str, handler: RuleHandler) -> None:
         self._message_service.register_plugin_rule(
@@ -32,6 +33,29 @@ class PluginRegistry:
             handler=handler,
         )
 
+    def register_frontend_page(
+        self,
+        title: str,
+        route: str,
+        view_type: str,
+        source: str,
+        order: int = 100,
+    ) -> None:
+        normalized_route = route if route.startswith("/") else f"/{route}"
+        self._frontend_pages.append(
+            {
+                "plugin": self._plugin_name,
+                "title": title,
+                "route": normalized_route,
+                "view_type": view_type,
+                "source": source,
+                "order": order,
+            }
+        )
+
+    def frontend_pages(self) -> list[dict[str, str | int]]:
+        return list(self._frontend_pages)
+
 
 class PluginManager:
     def __init__(self, plugins_dir: str | Path, message_service: MessageService) -> None:
@@ -39,6 +63,7 @@ class PluginManager:
         self._plugins_dir.mkdir(parents=True, exist_ok=True)
         self._message_service = message_service
         self._runtime: dict[str, PluginRuntime] = {}
+        self._frontend_pages: dict[str, list[dict[str, str | int]]] = {}
 
     def _plugin_file(self, name: str) -> Path:
         return self._plugins_dir / name / "plugin.py"
@@ -82,8 +107,10 @@ class PluginManager:
                 raise RuntimeError("register(registry) not found")
 
             self._message_service.unregister_plugin_rules(name)
+            self.unregister_frontend_pages(name)
             registry = PluginRegistry(plugin_name=name, message_service=self._message_service)
             register(registry)
+            self._frontend_pages[name] = registry.frontend_pages()
 
             version = str(getattr(module, "__version__", ""))
             self._runtime[name] = PluginRuntime(
@@ -110,6 +137,7 @@ class PluginManager:
     def reload_plugin(self, name: str) -> dict[str, Any]:
         old_runtime = self._runtime.get(name)
         old_rules = self._message_service.unregister_plugin_rules(name)
+        old_frontend = self.unregister_frontend_pages(name)
 
         try:
             module = self._import_plugin_module(name)
@@ -119,6 +147,7 @@ class PluginManager:
 
             registry = PluginRegistry(plugin_name=name, message_service=self._message_service)
             register(registry)
+            self._frontend_pages[name] = registry.frontend_pages()
 
             version = str(getattr(module, "__version__", ""))
             self._runtime[name] = PluginRuntime(
@@ -134,6 +163,7 @@ class PluginManager:
             if old_runtime is not None and old_runtime.module is not None:
                 self._runtime[name] = old_runtime
                 self._message_service.restore_plugin_rules(name, old_rules)
+                self.restore_frontend_pages(name, old_frontend)
                 self._runtime[name].error = f"reload failed, old active: {exc}"
                 print(f"[plugin] reload failed, rollback active: {name}, err={exc}")
                 print(traceback.format_exc())
@@ -186,3 +216,47 @@ class PluginManager:
                 }
             )
         return items
+
+    def unregister_frontend_pages(self, plugin_name: str) -> list[dict[str, str | int]]:
+        removed = self._frontend_pages.pop(plugin_name, [])
+        if removed:
+            print(f"[plugin] frontend pages unregistered: plugin={plugin_name}, count={len(removed)}")
+        return removed
+
+    def restore_frontend_pages(self, plugin_name: str, pages: list[dict[str, str | int]]) -> None:
+        self._frontend_pages[plugin_name] = pages
+        print(f"[plugin] frontend pages restored: plugin={plugin_name}, count={len(pages)}")
+
+    def list_frontend_pages(self) -> list[dict[str, str | int]]:
+        items: list[dict[str, str | int]] = []
+        for plugin_name in sorted(self._frontend_pages.keys()):
+            for page in self._frontend_pages[plugin_name]:
+                item = dict(page)
+                item["plugin"] = plugin_name
+                items.append(item)
+        items.sort(key=lambda x: (int(x.get("order", 100)), str(x.get("title", ""))))
+        return items
+
+    def list_frontend_menu_items(self) -> list[dict[str, str]]:
+        return [
+            {
+                "title": str(page.get("title", "插件页面")),
+                "route": str(page.get("route", "")),
+            }
+            for page in self.list_frontend_pages()
+            if str(page.get("route", ""))
+        ]
+
+    def resolve_frontend_page(self, route: str) -> dict[str, str | int] | None:
+        normalized = route if route.startswith("/") else f"/{route}"
+        for page in self.list_frontend_pages():
+            if str(page.get("route", "")) == normalized:
+                return page
+        return None
+
+    def plugin_file_path(self, plugin_name: str, relative_file: str) -> Path:
+        path = (self._plugins_dir / plugin_name / relative_file).resolve()
+        base = (self._plugins_dir / plugin_name).resolve()
+        if base not in path.parents and path != base:
+            raise RuntimeError("invalid plugin frontend source path")
+        return path
