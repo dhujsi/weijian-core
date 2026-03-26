@@ -36,11 +36,14 @@
 	- `GET /ui/notes`
 	- `GET /ui/reminders`
 	- `GET /ui/plugins`
+	- `GET /ui/settings`（系统配置）
+	- `GET /ui/logs`（运行日志）
 - 管理接口（需 `X-Admin-Token`）：
 	- `POST /admin/reload_plugins`
 	- `POST /admin/reload_plugin/{name}`
 	- `POST /admin/reminders/{reminder_id}/cancel`
 	- `POST /admin/reminders/cleanup_done`
+	- `POST /admin/settings/env`
 
 ### 1.3 插件能力（后端 + 前端）
 
@@ -102,18 +105,19 @@
 	- `PUID` / `PGID`
 	- `NAPCAT_HTTP_TOKEN`（与 NapCat 一致）
 	- `BOT_QQ`（用于生成 NapCat onebot 配置文件名）
-2. （推荐）先自动生成 NapCat 配置：
-	- `python tools/gen_napcat_config.py`
-	- 如需覆盖：`python tools/gen_napcat_config.py --force`
-3. 首次构建并启动：`docker compose up -d --build`
-4. 检查状态：`docker compose ps`
+2. 首次构建并启动：`docker compose up -d --build`
+3. 检查状态：`docker compose ps`
 
 说明：
 
 - NapCat HTTP 对外映射为 `13001:3000`
 - weijian WebUI 对外映射为 `8018:8018`
 - weijian WS 对外映射为 `8095:8095`
-- `docker compose config` 已可通过，当前 compose 配置可用。
+
+启动时会由 `weijian-core` 自动执行配置生成（无需额外容器、无需手动先跑脚本）：
+
+- `python /app/tools/gen_napcat_config.py --env-file /app/.env --out-dir /app/napcat_data/config`
+- 若目标配置已存在，默认跳过不覆盖（幂等）
 
 自动配置脚本默认会写入：
 
@@ -121,6 +125,10 @@
 - HTTP Server：`0.0.0.0:3000`
 - WebSocket Client：`ws://weijian-core:8095/`
 - token：取 `.env` 的 `NAPCAT_HTTP_TOKEN`
+
+如需手动重建配置（例如强制覆盖），可在宿主机执行：
+
+- `python tools/gen_napcat_config.py --force`
 
 服务间通信在 compose 内部网络进行：
 
