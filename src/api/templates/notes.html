@@ -58,6 +58,8 @@
       <a class="{% if active_nav == '/ui/notes' %}active{% endif %}" href="/ui/notes">笔记</a>
       <a class="{% if active_nav == '/ui/reminders' %}active{% endif %}" href="/ui/reminders">提醒</a>
       <a class="{% if active_nav == '/ui/plugins' %}active{% endif %}" href="/ui/plugins">插件</a>
+      <a class="{% if active_nav == '/ui/settings' %}active{% endif %}" href="/ui/settings">配置</a>
+      <a class="{% if active_nav == '/ui/logs' %}active{% endif %}" href="/ui/logs">日志</a>
       {% for m in plugin_menus %}
       <a class="{% if active_nav == m.route %}active{% endif %}" href="{{ m.route }}">{{ m.title }}</a>
       {% endfor %}

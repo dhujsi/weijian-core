@@ -1,32 +1,49 @@
 services:
-    napcat:
-        image: mlikiowa/napcat-docker:latest
-        container_name: napcat
-        restart: always
-        environment:
-            - NAPCAT_UID=${PUID}
-            - NAPCAT_GID=${PGID}
-        ports:
-            - 13001:3000
-            - 6099:6099
+  napcat:
+    image: mlikiowa/napcat-docker:latest
+    container_name: napcat
+    restart: always
+    environment:
+      - NAPCAT_UID=${PUID}
+      - NAPCAT_GID=${PGID}
+    ports:
+      - 13001:3000
+      - 6099:6099
+    volumes:
+      # 持久化 NapCat 配置与登录态，避免重建后丢失
+      - ./napcat_data/config:/app/napcat/config
+      - ./napcat_data/qq:/app/.config/QQ
+    labels:
+      watchcow.enable: "true"
+      watchcow.display_name: "NapCat"
+      watchcow.service_port: "6099"
+      watchcow.protocol: "http"
+      watchcow.all_users: "false"
+      #watchcow.icon: "file:///vol1/1000/docker/.icons/napcat.ico"
 
-    weijian-core:
-        build:
-            context: .
-            dockerfile: Dockerfile
-        container_name: weijian-core
-        restart: always
-        depends_on:
-            - napcat
-        env_file:
-            - .env
-        environment:
-            - WEBUI_HOST=0.0.0.0
-            - NAPCAT_WS_HOST=0.0.0.0
-            - NAPCAT_HTTP_BASE=http://napcat:3000
-        ports:
-            - 8018:8018
-            - 8095:8095
-        volumes:
-            - ./plugins:/app/plugins
-            - ./data:/app/data
+  weijian-core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: weijian-core
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - WEBUI_HOST=0.0.0.0
+      - NAPCAT_WS_HOST=0.0.0.0
+    ports:
+      - 8018:8018
+      - 8095:8095
+    volumes:
+      - ./plugins:/app/plugins
+      - ./data:/app/data
+      - ./.env:/app/.env
+    labels:
+      watchcow.enable: "true"
+      watchcow.display_name: "未笺"
+      watchcow.service_port: "8018"
+      watchcow.protocol: "http"
+      watchcow.path: "/ui"
+      watchcow.all_users: "false"
+      #watchcow.icon: "file:///vol1/1000/docker/.icons/weijian-core.ico"

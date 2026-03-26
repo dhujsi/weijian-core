@@ -10,10 +10,12 @@ from connectors.napcat.ws_server import run_ws_server
 from core.config import load_settings
 from core.message_service import MessageService
 from core.plugin_manager import PluginManager
+from core.runtime_log import setup_runtime_logging
 from core.storage import SQLiteStore
 
 
 async def _main() -> None:
+    setup_runtime_logging(Path("data/runtime.log"))
     settings = load_settings()
 
     napcat_http = NapCatHttpClient(

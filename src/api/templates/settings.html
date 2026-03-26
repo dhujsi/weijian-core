@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>插件管理 - 微笺控制台</title>
+  <title>系统配置 - 微笺控制台</title>
   <style>
     :root {
       --bg: #f5f7fb;
@@ -35,17 +35,15 @@
       font-size: 13px;
     }
     .nav a.active { border-color: var(--primary); color: var(--primary); background: #eff6ff; }
-    .toolbar { margin-bottom: 12px; }
-    button {
-      border: 0;
-      border-radius: 9px;
-      padding: 8px 12px;
-      font-size: 12px;
-      color: #fff;
-      background: var(--primary);
-      cursor: pointer;
+    .tip {
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #fde68a;
+      background: #fffbeb;
+      color: #92400e;
+      font-size: 13px;
     }
-    button:hover { background: var(--primary-hover); }
     .card {
       border: 1px solid var(--line);
       border-radius: 12px;
@@ -56,9 +54,28 @@
     table { border-collapse: collapse; width: 100%; }
     th, td { border-bottom: 1px solid var(--line); padding: 10px; text-align: left; font-size: 13px; }
     th { background: #f8fafc; color: #374151; }
-    tr:hover td { background: #fafafa; }
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      outline: none;
+    }
+    input:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(147, 197, 253, .3); }
+    .footer { margin-top: 12px; display: flex; gap: 8px; align-items: center; }
+    button {
+      border: 0;
+      border-radius: 9px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #fff;
+      background: var(--primary);
+      cursor: pointer;
+    }
+    button:hover { background: var(--primary-hover); }
     pre {
-      margin-top: 12px;
+      margin: 0;
       padding: 10px;
       border-radius: 10px;
       border: 1px solid var(--line);
@@ -68,14 +85,14 @@
       white-space: pre-wrap;
       word-break: break-all;
       font-size: 12px;
+      flex: 1;
     }
-    .empty { padding: 18px; color: var(--muted); font-size: 13px; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>插件管理</h1>
-    <div class="sub">查看插件状态并进行热重载</div>
+    <h1>系统配置</h1>
+    <div class="sub">可在线编辑 `.env` 常用配置项</div>
 
     <div class="nav">
       <a class="{% if active_nav == '/ui' %}active{% endif %}" href="/ui">总览</a>
@@ -89,45 +106,47 @@
       {% endfor %}
     </div>
 
-    <div class="toolbar">
-      <button onclick="reloadAll()">重载全部插件</button>
+    <div class="tip">
+      {% if env_exists %}
+      配置保存后会写入 `.env` 文件，但运行中的容器不会自动热加载，需重启 `weijian-core` 才生效。
+      {% else %}
+      未检测到 `.env`，保存时将自动创建。
+      {% endif %}
     </div>
 
     <div class="card">
-      {% if plugins|length == 0 %}
-      <div class="empty">未发现插件，请检查 plugins 目录</div>
-      {% else %}
       <table>
         <thead>
-          <tr><th>名称</th><th>状态</th><th>版本</th><th>错误</th><th>操作</th></tr>
+          <tr><th>键</th><th>值</th></tr>
         </thead>
         <tbody>
-          {% for p in plugins %}
+          {% for r in rows %}
           <tr>
-            <td>{{ p.name }}</td>
-            <td>{{ p.status }}</td>
-            <td>{{ p.version }}</td>
-            <td>{{ p.error }}</td>
-            <td>
-              <button onclick="reloadOne('{{ p.name }}')">重载</button>
-            </td>
+            <td><code>{{ r.key }}</code></td>
+            <td><input data-key="{{ r.key }}" value="{{ r.value }}" /></td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
-      {% endif %}
     </div>
 
-    <pre id="result">等待操作结果...</pre>
+    <div class="footer">
+      <button onclick="saveEnv()">保存 .env</button>
+      <pre id="result">等待保存...</pre>
+    </div>
   </div>
+
   <script>
-    async function reloadAll() {
-      const res = await fetch('/admin/reload_plugins', { method: 'POST' });
-      const data = await res.json();
-      document.getElementById('result').innerText = JSON.stringify(data, null, 2);
-    }
-    async function reloadOne(name) {
-      const res = await fetch(`/admin/reload_plugin/${name}`, { method: 'POST' });
+    async function saveEnv() {
+      const values = {};
+      for (const el of document.querySelectorAll('input[data-key]')) {
+        values[el.dataset.key] = el.value;
+      }
+      const res = await fetch('/admin/settings/env', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ values }),
+      });
       const data = await res.json();
       document.getElementById('result').innerText = JSON.stringify(data, null, 2);
     }
