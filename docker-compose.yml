@@ -1,12 +1,32 @@
 services:
     napcat:
+        image: mlikiowa/napcat-docker:latest
+        container_name: napcat
+        restart: always
         environment:
             - NAPCAT_UID=${PUID}
             - NAPCAT_GID=${PGID}
         ports:
             - 13001:3000
             - 6099:6099
-        container_name: napcat
-        network_mode: bridge
+
+    weijian-core:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: weijian-core
         restart: always
-        image: mlikiowa/napcat-docker:latest
+        depends_on:
+            - napcat
+        env_file:
+            - .env
+        environment:
+            - WEBUI_HOST=0.0.0.0
+            - NAPCAT_WS_HOST=0.0.0.0
+            - NAPCAT_HTTP_BASE=http://napcat:3000
+        ports:
+            - 8018:8018
+            - 8095:8095
+        volumes:
+            - ./plugins:/app/plugins
+            - ./data:/app/data

@@ -12,6 +12,7 @@
    - `plugins/my_plugin/web/index.html`
 4. 重载插件
    - WebUI: `/ui/plugins` -> 重载 `my_plugin`
+   - 或命令：`python tools/reload_plugin.py my_plugin --token <ADMIN_TOKEN>`
 5. 验证
    - 发测试命令看是否命中
    - 打开 `/ui/ext/my_plugin`

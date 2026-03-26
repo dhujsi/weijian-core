@@ -218,6 +218,20 @@ registry.register_frontend_page(
 2. 打开 `/ui/plugins` 重载插件
 3. 访问 `/ui/ext/<name>` 验证页面
 
+### 7.2 命令行重载插件（调试提效）
+
+项目提供：`tools/reload_plugin.py`
+
+- 重载单插件：`python tools/reload_plugin.py demo_echo --token <ADMIN_TOKEN>`
+- 重载全部插件：`python tools/reload_plugin.py all --token <ADMIN_TOKEN>`
+
+可选参数：
+
+- `--base`：管理接口地址，默认 `http://127.0.0.1:8018`
+- `--token`：`X-Admin-Token`
+
+在 Docker 部署下，只要 WebUI 端口映射可访问，也可直接用该脚本调试。
+
 ---
 
 ## 8. 配置与鉴权

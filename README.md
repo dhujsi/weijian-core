@@ -94,33 +94,42 @@
 
 ### 3.4 Docker 部署（推荐 NAS 场景）
 
-当前仓库内 `docker-compose.yml` 主要用于启动 NapCat 容器，`weijian-core` 主程序仍建议以 Python 进程运行（便于热更新插件）。
+当前仓库内 `docker-compose.yml` 已支持 `NapCat + weijian-core` 双服务一键部署。
 
-#### A) 启动 NapCat（Docker）
+#### A) 启动全套服务（Docker）
 
 1. 确认 `.env` 中以下配置：
 	- `PUID` / `PGID`
-	- `NAPCAT_HTTP_BASE=http://127.0.0.1:13001`
 	- `NAPCAT_HTTP_TOKEN`（与 NapCat 一致）
-2. 启动容器：`docker compose up -d`
+2. 首次构建并启动：`docker compose up -d --build`
 3. 检查状态：`docker compose ps`
 
 说明：
 
-- 端口映射为 `13001:3000`，所以应用侧应访问 `13001` 而不是 `3000`。
+- NapCat HTTP 对外映射为 `13001:3000`
+- weijian WebUI 对外映射为 `8018:8018`
+- weijian WS 对外映射为 `8095:8095`
 - `docker compose config` 已可通过，当前 compose 配置可用。
 
-#### B) 启动 weijian-core（宿主机 Python）
+服务间通信在 compose 内部网络进行：
 
-1. 安装依赖：`pip install -r requirements.txt`
-2. 启动服务：`python src/main.py`
-3. 打开 WebUI：`http://127.0.0.1:8018/ui`
+- `weijian-core -> napcat` 使用 `http://napcat:3000`
 
-#### C) 插件开发工作流（容器 + 宿主机）
+#### B) 插件热更新（Docker 内）
 
-- NapCat 在 Docker 中常驻运行
-- weijian-core 在宿主机运行
-- 仅修改 `plugins/<name>/` 后在 `/ui/plugins` 重载即可
+- `docker-compose.yml` 已挂载：
+	- `./plugins:/app/plugins`
+	- `./data:/app/data`
+- 所以你在宿主机改 `plugins/`，容器内可立即看到
+- 改完后重载插件：
+	- WebUI：`/ui/plugins`
+	- 或命令：`python tools/reload_plugin.py <plugin_name> --token <ADMIN_TOKEN>`
+
+#### C) 插件开发工作流（推荐）
+
+- NapCat 与 weijian-core 均在 Docker 常驻
+- 开发机（VS Code）只修改 `plugins/<name>/`
+- 通过 `/ui/plugins` 或 `tools/reload_plugin.py` 重载
 
 > 这种方式最适合你当前目标：NAS 稳定运行框架，VS Code 新窗口专注插件开发。
 
@@ -146,6 +155,7 @@
 
 1. 修改插件代码（`plugin.py` / `web/*.html`）
 2. 进入 `/ui/plugins` 重载插件
+   - 或命令：`python tools/reload_plugin.py <name> --token <ADMIN_TOKEN>`
 3. 验证：
 	 - 消息规则是否生效
 	 - 菜单是否出现
