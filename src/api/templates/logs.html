@@ -32,7 +32,7 @@
       <div class="topbar">
         <div class="top-title">
           <h1>运行日志</h1>
-          <p>查看 `data/runtime.log` 并支持筛选、清空</p>
+          <p>参考控制台风格：实时查看、历史筛选、清屏（不清空文件）</p>
         </div>
         <div class="token-box">
           <input id="adminTokenInput" type="password" placeholder="管理员令牌" />
@@ -47,9 +47,17 @@
             <div class="toolbar">
               <input id="lines" type="number" min="50" max="2000" value="{{ lines }}" />
               <input id="kw" type="text" placeholder="关键词筛选（可选）" value="{{ kw if kw else '' }}" />
-              <button onclick="refreshLogs()">刷新</button>
+              <select id="levels" multiple title="日志级别筛选（可多选）">
+                <option value="DEBUG">DEBUG</option>
+                <option value="INFO">INFO</option>
+                <option value="WARN">WARN</option>
+                <option value="ERROR">ERROR</option>
+                <option value="FATAL">FATAL</option>
+              </select>
+              <button onclick="refreshLogs()">拉取日志</button>
+              <button class="ghost" onclick="toggleAutoRefresh()" id="autoBtn">自动刷新：关</button>
               <button class="ghost" onclick="clearFilter()">清空筛选</button>
-              <button class="danger" onclick="clearLogs()">清空日志</button>
+              <button class="danger" onclick="clearScreen()">清屏</button>
             </div>
             <pre id="logBox" class="log-box">{{ log_text if log_text else '暂无日志（请先触发一次消息或刷新后再看）' }}</pre>
           </div>
@@ -59,31 +67,80 @@
   </div>
 
   <script>
+    let autoTimer = null;
+
     window.addEventListener('DOMContentLoaded', () => {
       window.WJAdmin && window.WJAdmin.bindTokenInput();
+      hydrateByUrl();
     });
 
-    function refreshLogs() {
+    function selectedLevels() {
+      const select = document.getElementById('levels');
+      if (!select) return [];
+      return Array.from(select.selectedOptions).map(o => o.value);
+    }
+
+    function refreshLogsByUrl() {
       const n = Number(document.getElementById('lines').value || 300);
       const kw = (document.getElementById('kw').value || '').trim();
       const query = new URLSearchParams({ lines: String(n) });
       if (kw) query.set('kw', kw);
+      const levels = selectedLevels();
+      if (levels.length) query.set('levels', levels.join(','));
       location.href = `/ui/logs?${query.toString()}`;
+    }
+
+    async function refreshLogs() {
+      const n = Number(document.getElementById('lines').value || 300);
+      const kw = (document.getElementById('kw').value || '').trim();
+      const levels = selectedLevels();
+      const query = new URLSearchParams({ lines: String(n) });
+      if (kw) query.set('kw', kw);
+      if (levels.length) query.set('levels', levels.join(','));
+
+      const res = await fetch(`/admin/logs/query?${query.toString()}`);
+      const data = await res.json().catch(() => ({ ok: false, message: `HTTP ${res.status}` }));
+      if (!res.ok || !data.ok) {
+        alert(`拉取日志失败：${data.message || res.status}`);
+        return;
+      }
+      document.getElementById('logBox').innerText = data.text || '暂无匹配日志';
+      history.replaceState(null, '', `/ui/logs?${query.toString()}`);
     }
 
     function clearFilter() {
       document.getElementById('kw').value = '';
+      const select = document.getElementById('levels');
+      Array.from(select.options).forEach(o => { o.selected = false; });
       refreshLogs();
     }
 
-    async function clearLogs() {
-      if (!confirm('确认清空 data/runtime.log 吗？该操作不可恢复。')) return;
-      const { res, data } = await window.WJAdmin.adminPost('/admin/logs/clear');
-      if (!res.ok || !data.ok) {
-        alert(`清空失败：${data.message || res.status}`);
+    function clearScreen() {
+      document.getElementById('logBox').innerText = '（已清屏，仅当前页面显示被清空，日志文件未变更）';
+    }
+
+    function toggleAutoRefresh() {
+      const btn = document.getElementById('autoBtn');
+      if (autoTimer) {
+        clearInterval(autoTimer);
+        autoTimer = null;
+        btn.innerText = '自动刷新：关';
         return;
       }
-      document.getElementById('logBox').innerText = '日志已清空';
+      autoTimer = setInterval(refreshLogs, 3000);
+      btn.innerText = '自动刷新：开';
+      refreshLogs();
+    }
+
+    function hydrateByUrl() {
+      const params = new URLSearchParams(location.search);
+      const levels = (params.get('levels') || '').split(',').map(v => v.trim().toUpperCase()).filter(Boolean);
+      if (levels.length) {
+        const select = document.getElementById('levels');
+        Array.from(select.options).forEach(o => {
+          o.selected = levels.includes(o.value);
+        });
+      }
     }
   </script>
 </body>

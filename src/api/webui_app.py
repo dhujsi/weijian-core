@@ -94,12 +94,20 @@ def _tail_lines(file_path: Path, limit: int) -> str:
     return "\n".join(lines[-limit:])
 
 
-def _clear_file(file_path: Path) -> int:
-    if not file_path.exists() or not file_path.is_file():
-        return 0
-    size = file_path.stat().st_size
-    file_path.write_text("", encoding="utf-8")
-    return size
+def _filter_log_text(raw_text: str, keyword: str = "", levels: list[str] | None = None) -> str:
+    lines = raw_text.splitlines()
+    kw = keyword.strip().lower()
+    normalized_levels = [lvl.strip().upper() for lvl in (levels or []) if lvl.strip()]
+
+    def _match(line: str) -> bool:
+        upper_line = line.upper()
+        if kw and kw not in line.lower():
+            return False
+        if normalized_levels and not any(f"[{lvl}]" in upper_line or f" {lvl} " in upper_line for lvl in normalized_levels):
+            return False
+        return True
+
+    return "\n".join([line for line in lines if _match(line)])
 
 
 def create_web_app(
@@ -238,13 +246,12 @@ def create_web_app(
         )
 
     @app.get("/ui/logs", response_class=HTMLResponse)
-    async def ui_logs(request: Request, lines: int = 300, kw: str = "") -> Any:
+    async def ui_logs(request: Request, lines: int = 300, kw: str = "", levels: str = "") -> Any:
         normalized_lines = max(50, min(lines, 2000))
-        log_text = _tail_lines(Path("data/runtime.log"), normalized_lines)
+        raw_log_text = _tail_lines(Path("data/runtime.log"), normalized_lines)
         keyword = kw.strip()
-        if keyword:
-            filtered = [line for line in log_text.splitlines() if keyword.lower() in line.lower()]
-            log_text = "\n".join(filtered)
+        level_list = [x.strip().upper() for x in levels.split(",") if x.strip()]
+        log_text = _filter_log_text(raw_text=raw_log_text, keyword=keyword, levels=level_list)
         return templates.TemplateResponse(
             request=request,
             name="logs.html",
@@ -254,8 +261,31 @@ def create_web_app(
                 "plugin_menus": _plugin_menus(),
                 "lines": normalized_lines,
                 "kw": keyword,
+                "levels": ",".join(level_list),
                 "log_text": log_text,
             },
+        )
+
+    @app.get("/admin/logs/query")
+    async def admin_query_logs(
+        lines: int = 300,
+        kw: str = "",
+        levels: str = "",
+    ) -> JSONResponse:
+        normalized_lines = max(50, min(lines, 2000))
+        level_list = [x.strip().upper() for x in levels.split(",") if x.strip()]
+        raw_text = _tail_lines(Path("data/runtime.log"), normalized_lines)
+        text = _filter_log_text(raw_text=raw_text, keyword=kw, levels=level_list)
+        return JSONResponse(
+            content={
+                "ok": True,
+                "message": "ok",
+                "source": "data/runtime.log",
+                "lines": normalized_lines,
+                "kw": kw.strip(),
+                "levels": level_list,
+                "text": text,
+            }
         )
 
     @app.get("/ui/ext/{ext_path:path}", response_class=HTMLResponse)
@@ -380,18 +410,13 @@ def create_web_app(
         )
 
     @app.post("/admin/logs/clear")
-    async def admin_clear_logs(x_admin_token: str | None = Header(default=None)) -> JSONResponse:
-        unauthorized = _check_admin_token(x_admin_token)
-        if unauthorized:
-            return unauthorized
-
-        cleared_bytes = _clear_file(Path("data/runtime.log"))
-        print(f"[admin] POST /admin/logs/clear => cleared_bytes={cleared_bytes}")
+    async def admin_clear_logs() -> JSONResponse:
+        print("[admin] POST /admin/logs/clear => no-op")
         return JSONResponse(
             content={
                 "ok": True,
-                "message": "日志已清空",
-                "cleared_bytes": cleared_bytes,
+                "message": "已取消文件清空。请在日志页使用“清屏”仅清除当前页面显示。",
+                "cleared_bytes": 0,
             }
         )
 
