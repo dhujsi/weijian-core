@@ -1,0 +1,89 @@
+<div class="toolbar" style="justify-content: space-between; margin-bottom: 12px;">
+  <div class="toolbar">
+    <button class="ghost" onclick="setStatus('all')">全部</button>
+    <button class="ghost" onclick="setStatus('pending')">待执行</button>
+    <button class="ghost" onclick="setStatus('done')">已完成</button>
+    <button class="ghost" onclick="setStatus('cancelled')">已取消</button>
+  </div>
+  <div class="toolbar">
+    <button onclick="cleanupDone()">清理已完成</button>
+    <button class="ghost" onclick="reloadReminders()">刷新</button>
+  </div>
+</div>
+
+<div id="reminders-empty" class="empty" style="display:none;">当前筛选下无提醒数据</div>
+<div id="reminders-table-wrap" class="table-wrap" style="display:none;">
+  <table>
+    <thead>
+      <tr><th>ID</th><th>用户</th><th>内容</th><th>状态</th><th>提醒时间</th><th>创建时间</th><th>操作</th></tr>
+    </thead>
+    <tbody id="reminders-tbody"></tbody>
+  </table>
+</div>
+<pre id="reminders-result" class="result-box" style="margin-top:12px;">等待操作结果...</pre>
+
+<script>
+  let currentStatus = 'all';
+
+  function adminToken() {
+    return (localStorage.getItem('admin_token') || '').trim();
+  }
+
+  function authHeaders(extra = {}) {
+    const t = adminToken();
+    return t ? { ...extra, 'X-Admin-Token': t } : { ...extra };
+  }
+
+  function setStatus(status) {
+    currentStatus = status;
+    reloadReminders();
+  }
+
+  async function reloadReminders() {
+    const qs = new URLSearchParams({ status: currentStatus });
+    const res = await fetch(`/admin/reminders?${qs.toString()}`, { method: 'GET' });
+    const data = await res.json();
+    const rows = Array.isArray(data.reminders) ? data.reminders : [];
+
+    const tbody = document.getElementById('reminders-tbody');
+    const empty = document.getElementById('reminders-empty');
+    const wrap = document.getElementById('reminders-table-wrap');
+    tbody.innerHTML = '';
+
+    for (const r of rows) {
+      const canCancel = r.status === 'pending';
+      const action = canCancel
+        ? `<button onclick="cancelReminder(${r.id})">取消</button>`
+        : '<span class="muted">-</span>';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${r.id}</td><td>${r.user_id}</td><td>${r.content}</td><td>${r.status}</td><td>${r.remind_at}</td><td>${r.created_at}</td><td>${action}</td>`;
+      tbody.appendChild(tr);
+    }
+
+    const hasData = rows.length > 0;
+    empty.style.display = hasData ? 'none' : 'block';
+    wrap.style.display = hasData ? 'block' : 'none';
+  }
+
+  async function cancelReminder(id) {
+    const res = await fetch(`/admin/reminders/${id}/cancel`, {
+      method: 'POST',
+      headers: authHeaders(),
+    });
+    const data = await res.json();
+    document.getElementById('reminders-result').innerText = JSON.stringify(data, null, 2);
+    await reloadReminders();
+  }
+
+  async function cleanupDone() {
+    const res = await fetch('/admin/reminders/cleanup_done', {
+      method: 'POST',
+      headers: authHeaders(),
+    });
+    const data = await res.json();
+    document.getElementById('reminders-result').innerText = JSON.stringify(data, null, 2);
+    await reloadReminders();
+  }
+
+  window.addEventListener('DOMContentLoaded', reloadReminders);
+</script>

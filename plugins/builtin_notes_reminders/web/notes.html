@@ -1,0 +1,38 @@
+<div class="toolbar" style="justify-content: space-between; margin-bottom: 12px;">
+  <div class="muted">最近 100 条笔记</div>
+  <button class="ghost" onclick="reloadNotes()">刷新</button>
+</div>
+
+<div id="notes-empty" class="empty" style="display:none;">暂无笔记数据</div>
+<div id="notes-table-wrap" class="table-wrap" style="display:none;">
+  <table>
+    <thead>
+      <tr><th>ID</th><th>用户</th><th>内容</th><th>创建时间</th></tr>
+    </thead>
+    <tbody id="notes-tbody"></tbody>
+  </table>
+</div>
+
+<script>
+  async function reloadNotes() {
+    const res = await fetch('/admin/notes', { method: 'GET' });
+    const data = await res.json();
+    const rows = Array.isArray(data.notes) ? data.notes : [];
+    const tbody = document.getElementById('notes-tbody');
+    const empty = document.getElementById('notes-empty');
+    const wrap = document.getElementById('notes-table-wrap');
+
+    tbody.innerHTML = '';
+    for (const n of rows) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${n.id}</td><td>${n.user_id}</td><td>${n.content}</td><td>${n.created_at}</td>`;
+      tbody.appendChild(tr);
+    }
+
+    const hasData = rows.length > 0;
+    empty.style.display = hasData ? 'none' : 'block';
+    wrap.style.display = hasData ? 'block' : 'none';
+  }
+
+  window.addEventListener('DOMContentLoaded', reloadNotes);
+</script>

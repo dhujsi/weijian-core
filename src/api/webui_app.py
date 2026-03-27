@@ -156,9 +156,10 @@ def create_web_app(
             context=context,
         )
 
-    @app.get("/ui/notes", response_class=HTMLResponse)
-    async def ui_notes(request: Request) -> Any:
-        notes = store.list_notes(limit=100)
+    @app.get("/admin/notes")
+    async def admin_list_notes(limit: int = 100) -> JSONResponse:
+        normalized_limit = max(1, min(limit, 500))
+        notes = store.list_notes(limit=normalized_limit)
         note_items = [
             {
                 "id": n.id,
@@ -168,22 +169,23 @@ def create_web_app(
             }
             for n in notes
         ]
-        print("[webui] GET /ui/notes")
-        return templates.TemplateResponse(
-            request=request,
-            name="notes.html",
-            context={
-                "request": request,
-                "active_nav": "/ui/notes",
-                "plugin_menus": _plugin_menus(),
+        return JSONResponse(
+            content={
+                "ok": True,
+                "message": "ok",
                 "notes": note_items,
-            },
+                "limit": normalized_limit,
+            }
         )
 
-    @app.get("/ui/reminders", response_class=HTMLResponse)
-    async def ui_reminders(request: Request, status: str = "all") -> Any:
-        normalized = status if status in {"pending", "done", "cancelled"} else "all"
-        reminders = store.list_reminders(status=None if normalized == "all" else normalized, limit=100)
+    @app.get("/admin/reminders")
+    async def admin_list_reminders(status: str = "all", limit: int = 100) -> JSONResponse:
+        normalized_status = status if status in {"pending", "done", "cancelled"} else "all"
+        normalized_limit = max(1, min(limit, 500))
+        reminders = store.list_reminders(
+            status=None if normalized_status == "all" else normalized_status,
+            limit=normalized_limit,
+        )
         reminder_items = [
             {
                 "id": r.id,
@@ -195,17 +197,14 @@ def create_web_app(
             }
             for r in reminders
         ]
-        print(f"[webui] GET /ui/reminders?status={normalized}")
-        return templates.TemplateResponse(
-            request=request,
-            name="reminders.html",
-            context={
-                "request": request,
-                "active_nav": "/ui/reminders",
-                "plugin_menus": _plugin_menus(),
-                "status": normalized,
+        return JSONResponse(
+            content={
+                "ok": True,
+                "message": "ok",
+                "status": normalized_status,
+                "limit": normalized_limit,
                 "reminders": reminder_items,
-            },
+            }
         )
 
     @app.get("/ui/plugins", response_class=HTMLResponse)

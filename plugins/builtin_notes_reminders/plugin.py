@@ -74,6 +74,21 @@ def _parse_simple_remind_time(text: str) -> tuple[float, str] | None:
 
 
 def register(registry) -> None:
+    registry.register_frontend_page(
+        title="笔记",
+        route="/ui/ext/notes",
+        view_type="template",
+        source="web/notes.html",
+        order=20,
+    )
+    registry.register_frontend_page(
+        title="提醒",
+        route="/ui/ext/reminders",
+        view_type="template",
+        source="web/reminders.html",
+        order=21,
+    )
+
     async def on_note(service, user_id: int, text: str) -> bool:
         if not text.startswith("记一下"):
             return False

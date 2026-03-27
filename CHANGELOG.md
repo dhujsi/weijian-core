@@ -6,9 +6,9 @@
 
 - 新增最小 WebUI：
   - `GET /ui` Dashboard
-  - `GET /ui/notes`
-  - `GET /ui/reminders`
   - `GET /ui/plugins`
+  - `GET /ui/ext/notes`（插件页面）
+  - `GET /ui/ext/reminders`（插件页面）
 - 新增管理接口：
   - `POST /admin/reload_plugins`
   - `POST /admin/reload_plugin/{name}`

@@ -32,8 +32,8 @@
 
 - 当前展示统一使用 `Asia/Shanghai`
 - 通过以下页面确认时间显示：
-  - `/ui/notes`
-  - `/ui/reminders`
+   - `/ui/ext/notes`
+   - `/ui/ext/reminders`
 - 通过消息确认：提醒设置回执时间应符合中国时区直觉
 
 ## 4) 常见故障排查
