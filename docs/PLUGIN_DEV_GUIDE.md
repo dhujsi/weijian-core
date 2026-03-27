@@ -8,6 +8,7 @@
 
 - 后端插件热重载（单插件 / 全量）
 - 插件消息规则注册（命令匹配、业务逻辑）
+- 插件后台调度任务注册（如提醒轮询）
 - 前端半插件化（插件可注册菜单与页面扩展点）
 
 核心能力入口：
@@ -111,6 +112,20 @@ registry.register_frontend_page(
   - `template`：插件目录相对路径，如 `web/page.html`
   - `iframe`：完整 URL
 - `order`: 菜单排序，越小越靠前
+
+### 4.3 `register_scheduler(scheduler_name, handler)`
+
+注册插件后台调度任务。
+
+- `scheduler_name: str` 调度器名称（插件内建议唯一）
+- `handler` 建议签名：
+  - `handler(service) -> None | Awaitable[None]`
+
+说明：
+
+- 调度器会在服务启动时与 Web/WS 一起运行。
+- 插件重载时会先卸载旧调度器，再注册新调度器。
+- 若调度器内部使用循环，需自行控制间隔（例如 `await asyncio.sleep(10)`）。
 
 ---
 

@@ -49,7 +49,7 @@ async def _main() -> None:
             port=settings.napcat_ws_port,
             message_service=message_service,
         ),
-        message_service.run_reminder_scheduler(),
+        message_service.run_plugin_schedulers(),
         web_server.serve(),
     )
 

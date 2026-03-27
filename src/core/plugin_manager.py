@@ -33,6 +33,13 @@ class PluginRegistry:
             handler=handler,
         )
 
+    def register_scheduler(self, scheduler_name: str, handler: Any) -> None:
+        self._message_service.register_plugin_scheduler(
+            plugin_name=self._plugin_name,
+            scheduler_name=scheduler_name,
+            handler=handler,
+        )
+
     def register_frontend_page(
         self,
         title: str,
@@ -107,6 +114,7 @@ class PluginManager:
                 raise RuntimeError("register(registry) not found")
 
             self._message_service.unregister_plugin_rules(name)
+            self._message_service.unregister_plugin_schedulers(name)
             self.unregister_frontend_pages(name)
             registry = PluginRegistry(plugin_name=name, message_service=self._message_service)
             register(registry)
@@ -137,6 +145,7 @@ class PluginManager:
     def reload_plugin(self, name: str) -> dict[str, Any]:
         old_runtime = self._runtime.get(name)
         old_rules = self._message_service.unregister_plugin_rules(name)
+        old_schedulers = self._message_service.unregister_plugin_schedulers(name)
         old_frontend = self.unregister_frontend_pages(name)
 
         try:
@@ -163,6 +172,7 @@ class PluginManager:
             if old_runtime is not None and old_runtime.module is not None:
                 self._runtime[name] = old_runtime
                 self._message_service.restore_plugin_rules(name, old_rules)
+                self._message_service.restore_plugin_schedulers(name, old_schedulers)
                 self.restore_frontend_pages(name, old_frontend)
                 self._runtime[name].error = f"reload failed, old active: {exc}"
                 print(f"[plugin] reload failed, rollback active: {name}, err={exc}")
