@@ -127,7 +127,8 @@ def create_web_app(
 
     def _check_admin_token(x_admin_token: str | None) -> JSONResponse | None:
         expected = (settings.admin_token or "").strip()
-        if not expected:
+        # 默认值 `change_me` 作为开发/初始体验，避免未配置时全局管理接口被拒绝
+        if not expected or expected == "change_me":
             return None
         if x_admin_token != expected:
             print("[admin] unauthorized request")
